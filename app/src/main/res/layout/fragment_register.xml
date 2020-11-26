@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.main.register.RegisterFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
+    <ImageView
+        android:id="@+id/backRegisterFragmentIV"
+        android:layout_width="@dimen/_30sdp"
+        android:layout_height="@dimen/_30sdp"
+        android:layout_margin="@dimen/_25sdp"
+        android:src="@drawable/ic_baseline_keyboard_arrow_left_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/register"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_18ssp"
+        app:layout_constraintBottom_toBottomOf="@+id/backRegisterFragmentIV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/backRegisterFragmentIV" />
+
+
+    <EditText
+        android:id="@+id/namaRegisterFragmentEDT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_edt"
+        android:drawableStart="@drawable/ic_baseline_person_24"
+        android:drawablePadding="@dimen/_10sdp"
+        android:hint="@string/name"
+        android:layout_marginTop="@dimen/_80sdp"
+        android:inputType="textPersonName"
+        android:paddingLeft="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_20sdp"
+        android:layout_marginEnd="@dimen/_20sdp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        android:drawableLeft="@drawable/ic_baseline_person_24" />
+
+    <EditText
+        android:id="@+id/emailRegisterFragmentEDT"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_edt"
+        android:drawableLeft="@drawable/ic_baseline_email_24"
+        android:drawablePadding="@dimen/_10sdp"
+        android:hint="@string/email"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:inputType="textEmailAddress"
+        android:paddingLeft="@dimen/_10sdp"
+        app:layout_constraintEnd_toEndOf="@+id/namaRegisterFragmentEDT"
+        app:layout_constraintStart_toStartOf="@+id/namaRegisterFragmentEDT"
+        app:layout_constraintTop_toBottomOf="@+id/namaRegisterFragmentEDT" />
+
+    <EditText
+        android:id="@+id/nomorHpRegisterFragmentEDT"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_edt"
+        android:drawableStart="@drawable/ic_baseline_phone_24"
+        android:drawablePadding="@dimen/_10sdp"
+        android:hint="@string/phone_number"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:inputType="phone"
+        android:paddingStart="@dimen/_10sdp"
+        app:layout_constraintEnd_toEndOf="@+id/emailRegisterFragmentEDT"
+        app:layout_constraintStart_toStartOf="@+id/emailRegisterFragmentEDT"
+        app:layout_constraintTop_toBottomOf="@+id/emailRegisterFragmentEDT"
+        android:paddingLeft="@dimen/_10sdp"
+        android:drawableLeft="@drawable/ic_baseline_phone_24" />
+
+    <EditText
+        android:id="@+id/passwordRegisterFragmentEDT"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_edt"
+        android:drawableStart="@drawable/ic_baseline_lock_24"
+        android:drawablePadding="@dimen/_10sdp"
+        android:hint="@string/password"
+        android:inputType="textPassword"
+        android:paddingStart="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        app:layout_constraintEnd_toEndOf="@+id/nomorHpRegisterFragmentEDT"
+        app:layout_constraintStart_toStartOf="@+id/nomorHpRegisterFragmentEDT"
+        app:layout_constraintTop_toBottomOf="@+id/nomorHpRegisterFragmentEDT"
+        android:drawableLeft="@drawable/ic_baseline_lock_24"
+        android:paddingLeft="@dimen/_10sdp" />
+
+    <Button
+        android:id="@+id/masukRegisterFragmentBTN"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_20sdp"
+        android:padding="@dimen/_15sdp"
+        android:text="@string/register"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/passwordRegisterFragmentEDT"
+        app:layout_constraintStart_toStartOf="@+id/passwordRegisterFragmentEDT"
+        app:layout_constraintTop_toBottomOf="@+id/passwordRegisterFragmentEDT" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/progressBarHolderLoginCL"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.4"
+        android:animateLayoutChanges="true"
+        android:background="#000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/loginPB"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/labelProgressLoginTV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_16sdp"
+            android:text="@string/loading"
+            android:textColor="@color/purple_700"            android:textSize="@dimen/_13ssp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/loginPB" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

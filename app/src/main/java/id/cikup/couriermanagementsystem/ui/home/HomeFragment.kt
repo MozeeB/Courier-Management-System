@@ -9,8 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import id.cikup.couriermanagementsystem.R
+import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), OnBackPressedListener {
 
     private lateinit var homeViewModel: HomeViewModel
 
@@ -27,5 +28,9 @@ class HomeFragment : Fragment() {
             textView.text = it
         })
         return root
+    }
+
+    override fun onBackPressed() {
+        this.requireActivity().moveTaskToBack(true)
     }
 }

@@ -3,4 +3,18 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="courier">Courier</string>
+    <string name="management_system">Management System</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="ops_i_don_t_have_an_account_yet">ops...I Don\'t Have an Account yet</string>
+    <string name="register">Register</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="name">Name</string>
+    <string name="loading">Loading...</string>
+    <string name="log_out">Log Out</string>
+    <string name="profile">Profile</string>
 </resources>

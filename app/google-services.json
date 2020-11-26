@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "702109646766",
+    "firebase_url": "https://courier-management-syste-44576.firebaseio.com",
+    "project_id": "courier-management-syste-44576",
+    "storage_bucket": "courier-management-syste-44576.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:702109646766:android:6c9e88af69b92aff5ad23f",
+        "android_client_info": {
+          "package_name": "id.cikup.couriermanagementsystem"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "702109646766-bqk0gni0ra2pmotovdf2404uljp1fucf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "id.cikup.couriermanagementsystem",
+            "certificate_hash": "bc8a8c268c9b032926a96224f5293d5c174d15c1"
+          }
+        },
+        {
+          "client_id": "702109646766-fgpfpgu59ap1qac9n9fnn7teimjernpu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQW-66cY5Of0kUXOZK0zR-QvDX8qsmkLk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "702109646766-fgpfpgu59ap1qac9n9fnn7teimjernpu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
