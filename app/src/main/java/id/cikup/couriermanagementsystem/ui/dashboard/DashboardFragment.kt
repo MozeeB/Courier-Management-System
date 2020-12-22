@@ -1,11 +1,15 @@
 package id.cikup.couriermanagementsystem.ui.dashboard
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
@@ -35,6 +39,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         super.onActivityCreated(savedInstanceState)
 
         kirimChatDasboardFragmentIV.setOnClickListener(this)
+        logOut.setOnClickListener(this)
 
         chatDashboardFragmentRV.apply {
             setHasFixedSize(false)
@@ -63,7 +68,23 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
                 }
             }
-        }
+            R.id.logOut ->{
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle("Log Out")
+                builder.setMessage("Apakah anda yakin ingin log out?")
+                builder.setPositiveButton("Ya") {dialog, which ->
+                    FirebaseAuth.getInstance().signOut()
+                    findNavController().navigate(R.id.action_navigation_dashboard_to_mainActivity)
+                }
+                builder.setNegativeButton("Tidak") { dialog, which ->
+
+                }
+
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+
+                }
+            }
     }
 
 

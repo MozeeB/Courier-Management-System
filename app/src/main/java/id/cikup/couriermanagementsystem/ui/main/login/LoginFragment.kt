@@ -10,10 +10,11 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import id.cikup.couriermanagementsystem.R
+import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.android.synthetic.main.fragment_login.progressBarHolderLoginCL
 
-class LoginFragment : Fragment(), View.OnClickListener {
+class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
 
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
@@ -84,6 +85,10 @@ class LoginFragment : Fragment(), View.OnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
         }
         super.onStart()
+    }
+
+    override fun onBackPressed() {
+        this.requireActivity().moveTaskToBack(true)
     }
 
 }
