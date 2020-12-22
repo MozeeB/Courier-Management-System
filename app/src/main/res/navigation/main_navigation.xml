@@ -20,6 +20,12 @@
             app:exitAnim="@anim/left_out"
             app:popEnterAnim="@anim/left_in"
             app:popExitAnim="@anim/right_out" />
+        <action
+            android:id="@+id/action_loginFragment_to_forgetPasswordFragment"
+            app:destination="@id/forgetPasswordFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_forgetUsernameFragment"
+            app:destination="@id/forgetUsernameFragment" />
     </fragment>
     <activity
         android:id="@+id/homeActivity"
@@ -40,5 +46,23 @@
         <action
             android:id="@+id/action_registerFragment_to_homeActivity"
             app:destination="@id/homeActivity" />
+    </fragment>
+    <fragment
+        android:id="@+id/forgetPasswordFragment"
+        android:name="id.cikup.couriermanagementsystem.ui.main.forget.ForgetPasswordFragment"
+        android:label="fragment_forget_password"
+        tools:layout="@layout/fragment_forget_password" >
+        <action
+            android:id="@+id/action_forgetPasswordFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/forgetUsernameFragment"
+        android:name="id.cikup.couriermanagementsystem.ui.main.forget.ForgetUsernameFragment"
+        android:label="fragment_forget_username"
+        tools:layout="@layout/fragment_forget_username" >
+        <action
+            android:id="@+id/action_forgetUsernameFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
     </fragment>
 </navigation>

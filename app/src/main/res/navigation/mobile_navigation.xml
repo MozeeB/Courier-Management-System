@@ -3,13 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
-
-    <fragment
-        android:id="@+id/navigation_home"
-        android:name="id.cikup.couriermanagementsystem.ui.home.HomeFragment"
-        android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+    app:startDestination="@+id/navigation_dashboard">
 
     <fragment
         android:id="@+id/navigation_dashboard"
@@ -18,23 +12,31 @@
         tools:layout="@layout/fragment_dashboard" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="id.cikup.couriermanagementsystem.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_tugas"
+        android:name="id.cikup.couriermanagementsystem.ui.tugas.TugasFragment"
+        android:label="@string/tugas"
+        tools:layout="@layout/fragment_tugas" />
 
     <fragment
-        android:id="@+id/navigation_profile"
-        android:name="id.cikup.couriermanagementsystem.ui.profile.ProfileFragment"
-        android:label="@string/profile"
-        tools:layout="@layout/fragment_profile" >
-        <action
-            android:id="@+id/action_navigation_profile_to_mainActivity"
-            app:destination="@id/mainActivity" />
-    </fragment>
+        android:id="@+id/navigation_upah"
+        android:name="id.cikup.couriermanagementsystem.ui.upah.UpahFragment"
+        android:label="@string/upah"
+        tools:layout="@layout/fragment_upah" />
+
     <activity
         android:id="@+id/mainActivity"
         android:name="id.cikup.couriermanagementsystem.ui.main.MainActivity"
         android:label="activity_main"
         tools:layout="@layout/activity_main" />
+
+    <fragment
+        android:id="@+id/navigation_riwayat"
+        android:name="id.cikup.couriermanagementsystem.ui.riwayat.RiwayatFragment"
+        android:label="@string/riwayat"
+        tools:layout="@layout/fragment_riwayat" />
+    <fragment
+        android:id="@+id/navigation_reimburse"
+        android:name="id.cikup.couriermanagementsystem.ui.reimburse.ReimburseFragment"
+        android:label="@string/reimburse"
+        tools:layout="@layout/fragment_reimburse" />
 </navigation>

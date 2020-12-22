@@ -31,16 +31,16 @@ class RegisterFragment : Fragment(), View.OnClickListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        backRegisterFragmentIV.setOnClickListener(this)
-        masukRegisterFragmentBTN.setOnClickListener(this)
+        registerFragmentBTN.setOnClickListener(this)
+        signinRegisterFragmentBTN.setOnClickListener(this)
     }
 
     override fun onClick(p0: View?) {
         when(p0?.id){
-            R.id.backRegisterFragmentIV ->{
+            R.id.signinRegisterFragmentBTN ->{
                 findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
             }
-            R.id.masukRegisterFragmentBTN ->{
+            R.id.registerFragmentBTN ->{
                 createAccount()
             }
         }
@@ -48,29 +48,37 @@ class RegisterFragment : Fragment(), View.OnClickListener {
 
     private fun createAccount() {
         progressBarHolderLoginCL.visibility = View.VISIBLE
-        val name = namaRegisterFragmentEDT.text.toString()
+        val firstName = firstNameRegisterFragmentEDT.text.toString()
+        val backName = backNameRegisterFragmentEDT.text.toString()
+        val username = usernameRegisterFragmentEDT.text.toString()
         val email = emailRegisterFragmentEDT.text.toString()
-        val phone = nomorHpRegisterFragmentEDT.text.toString()
         val password = passwordRegisterFragmentEDT.text.toString()
+        val confirmPass = confirmPassRegisterFragmentEDT.text.toString()
 
         when {
-            TextUtils.isEmpty(name) ->
-                Toast.makeText(context, "Name cannot be empty!", Toast.LENGTH_SHORT).show()
+            TextUtils.isEmpty(firstName) ->
+                Toast.makeText(context, "First Name cannot be empty!", Toast.LENGTH_SHORT).show()
+            TextUtils.isEmpty(backName) ->
+                Toast.makeText(context, "Back Name cannot be empty!", Toast.LENGTH_SHORT).show()
+            TextUtils.isEmpty(username) ->
+                Toast.makeText(context, "Username cannot be empty!", Toast.LENGTH_SHORT).show()
             TextUtils.isEmpty(email) ->
                 Toast.makeText(context, "Email cannot be empty!", Toast.LENGTH_SHORT).show()
-            TextUtils.isEmpty(phone) ->
-                Toast.makeText(context, "Phone number cannot be empty!", Toast.LENGTH_SHORT).show()
             TextUtils.isEmpty(password) ->
                 Toast.makeText(context, "Password cannot be empty!", Toast.LENGTH_SHORT).show()
+            TextUtils.isEmpty(confirmPass) ->
+                Toast.makeText(context, "Confirm Password cannot be empty!", Toast.LENGTH_SHORT).show()
+            TextUtils.equals(password , confirmPass) ->
+                Toast.makeText(context, "Password not Matches", Toast.LENGTH_SHORT).show()
 
             else -> {
                 auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
                     if (it.isSuccessful) {
 //                        findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
-                        saveInfoUser(name, email, phone)
+                        saveInfoUser(firstName, backName, username, email)
                     } else {
                         auth.signOut()
-                        Toast.makeText(context, "Password cannot be empty!", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, it.exception?.message, Toast.LENGTH_SHORT)
                             .show()
                     }
                 }
@@ -78,18 +86,17 @@ class RegisterFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    private fun saveInfoUser(name:String, email:String, phone:String) {
+    private fun saveInfoUser(firstName:String, backName:String, username:String, email:String) {
         val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
         val usersRef: DatabaseReference = FirebaseDatabase.getInstance().reference.child("Users")
 
         val userMap = HashMap<String, Any>()
         userMap["uid"] = currentUserID
-        userMap["name"] = name.toLowerCase()
+        userMap["first_name"] = firstName.toLowerCase()
+        userMap["back_name"] = backName.toLowerCase()
+        userMap["username"] = username.toLowerCase()
         userMap["email"] = email
-        userMap["phone"] = phone
-        //create default image profile
-//        userMap["image"] =
-//            "https://firebasestorage.googleapis.com/v0/b/instagram-app-256b6.appspot.com/o/Default%20Images%2Fprofile.png?alt=media&token=ecebab92-ce4f-463c-a16a-a81fc34b0772"
+        userMap["image"] = "https://firebasestorage.googleapis.com/v0/b/instagram-app-256b6.appspot.com/o/Default%20Images%2Fprofile.png?alt=media&token=ecebab92-ce4f-463c-a16a-a81fc34b0772"
 
         usersRef.child(currentUserID).setValue(userMap)
             .addOnCompleteListener { task ->

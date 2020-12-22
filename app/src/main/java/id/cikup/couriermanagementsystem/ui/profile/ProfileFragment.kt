@@ -40,7 +40,7 @@ class ProfileFragment : Fragment(), View.OnClickListener {
                 GlobalScope.launch {
                     delay(800)
                     progressBarHolderLoginCL.visibility = View.GONE
-                    findNavController().navigate(R.id.action_navigation_profile_to_mainActivity)
+//                    findNavController().navigate(R.id.action_navigation_profile_to_mainActivity)
 
                 }
             }

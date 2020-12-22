@@ -1,120 +1,216 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/custom_background"
     tools:context=".ui.main.register.RegisterFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
 
-    <ImageView
-        android:id="@+id/backRegisterFragmentIV"
-        android:layout_width="@dimen/_30sdp"
-        android:layout_height="@dimen/_30sdp"
-        android:layout_margin="@dimen/_25sdp"
-        android:src="@drawable/ic_baseline_keyboard_arrow_left_24"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+                <TextView
+                    android:id="@+id/textViewRegister"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_40sdp"
+                    android:gravity="center_horizontal"
+                    android:text="@string/register"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_18ssp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/register"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:textSize="@dimen/_18ssp"
-        app:layout_constraintBottom_toBottomOf="@+id/backRegisterFragmentIV"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/backRegisterFragmentIV" />
+                <View
+                    android:id="@+id/viewRegister"
+                    android:layout_width="@dimen/_100sdp"
+                    android:layout_height="@dimen/_2sdp"
+                    android:background="@color/color2"
+                    app:layout_constraintEnd_toEndOf="@+id/textViewRegister"
+                    app:layout_constraintStart_toStartOf="@+id/textViewRegister"
+                    app:layout_constraintTop_toBottomOf="@+id/textViewRegister" />
 
+                <EditText
+                    android:id="@+id/firstNameRegisterFragmentEDT"
+                    android:layout_width="@dimen/_130sdp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_20sdp"
+                    android:layout_marginLeft="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_50sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/first_name"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/viewRegister" />
 
-    <EditText
-        android:id="@+id/namaRegisterFragmentEDT"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/custom_edt"
-        android:drawableStart="@drawable/ic_baseline_person_24"
-        android:drawablePadding="@dimen/_10sdp"
-        android:hint="@string/name"
-        android:layout_marginTop="@dimen/_80sdp"
-        android:inputType="textPersonName"
-        android:paddingLeft="@dimen/_10sdp"
-        android:layout_marginStart="@dimen/_20sdp"
-        android:layout_marginEnd="@dimen/_20sdp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3"
-        android:drawableLeft="@drawable/ic_baseline_person_24" />
-
-    <EditText
-        android:id="@+id/emailRegisterFragmentEDT"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/custom_edt"
-        android:drawableLeft="@drawable/ic_baseline_email_24"
-        android:drawablePadding="@dimen/_10sdp"
-        android:hint="@string/email"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:inputType="textEmailAddress"
-        android:paddingLeft="@dimen/_10sdp"
-        app:layout_constraintEnd_toEndOf="@+id/namaRegisterFragmentEDT"
-        app:layout_constraintStart_toStartOf="@+id/namaRegisterFragmentEDT"
-        app:layout_constraintTop_toBottomOf="@+id/namaRegisterFragmentEDT" />
-
-    <EditText
-        android:id="@+id/nomorHpRegisterFragmentEDT"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/custom_edt"
-        android:drawableStart="@drawable/ic_baseline_phone_24"
-        android:drawablePadding="@dimen/_10sdp"
-        android:hint="@string/phone_number"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:inputType="phone"
-        android:paddingStart="@dimen/_10sdp"
-        app:layout_constraintEnd_toEndOf="@+id/emailRegisterFragmentEDT"
-        app:layout_constraintStart_toStartOf="@+id/emailRegisterFragmentEDT"
-        app:layout_constraintTop_toBottomOf="@+id/emailRegisterFragmentEDT"
-        android:paddingLeft="@dimen/_10sdp"
-        android:drawableLeft="@drawable/ic_baseline_phone_24" />
-
-    <EditText
-        android:id="@+id/passwordRegisterFragmentEDT"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/custom_edt"
-        android:drawableStart="@drawable/ic_baseline_lock_24"
-        android:drawablePadding="@dimen/_10sdp"
-        android:hint="@string/password"
-        android:inputType="textPassword"
-        android:paddingStart="@dimen/_10sdp"
-        android:layout_marginTop="@dimen/_10sdp"
-        app:layout_constraintEnd_toEndOf="@+id/nomorHpRegisterFragmentEDT"
-        app:layout_constraintStart_toStartOf="@+id/nomorHpRegisterFragmentEDT"
-        app:layout_constraintTop_toBottomOf="@+id/nomorHpRegisterFragmentEDT"
-        android:drawableLeft="@drawable/ic_baseline_lock_24"
-        android:paddingLeft="@dimen/_10sdp" />
-
-    <Button
-        android:id="@+id/masukRegisterFragmentBTN"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_20sdp"
-        android:padding="@dimen/_15sdp"
-        android:text="@string/register"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/passwordRegisterFragmentEDT"
-        app:layout_constraintStart_toStartOf="@+id/passwordRegisterFragmentEDT"
-        app:layout_constraintTop_toBottomOf="@+id/passwordRegisterFragmentEDT" />
+                <EditText
+                    android:id="@+id/backNameRegisterFragmentEDT"
+                    android:layout_width="@dimen/_125sdp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_20sdp"
+                    android:layout_marginLeft="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/back_name"
+                    android:layout_marginEnd="@dimen/_30sdp"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintBottom_toBottomOf="@+id/firstNameRegisterFragmentEDT"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/firstNameRegisterFragmentEDT"
+                    app:layout_constraintTop_toTopOf="@+id/firstNameRegisterFragmentEDT"
+                    android:layout_marginRight="@dimen/_30sdp" />
 
 
+                <EditText
+                    android:id="@+id/usernameRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/username"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/firstNameRegisterFragmentEDT" />
+
+                <EditText
+                    android:id="@+id/emailRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/email"
+                    android:inputType="textEmailAddress"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/usernameRegisterFragmentEDT" />
+
+                <EditText
+                    android:id="@+id/passwordRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/password"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/emailRegisterFragmentEDT" />
+
+                <EditText
+                    android:id="@+id/confirmPassRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/confirm_password"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/passwordRegisterFragmentEDT" />
+
+                <EditText
+                    android:id="@+id/dateRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/tanggal_bulan_tahun"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/confirmPassRegisterFragmentEDT" />
+
+                <Button
+                    android:id="@+id/registerFragmentBTN"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/color3"
+                    android:hint="@string/register"
+                    android:textSize="@dimen/_14ssp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:padding="@dimen/_15sdp"
+                    android:layout_margin="@dimen/_20sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/dateRegisterFragmentEDT"
+                    tools:targetApi="lollipop" />
+
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_40sdp"
+                    android:layout_marginStart="@dimen/_60sdp"
+                    android:text="@string/you_have_account"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_10ssp"
+                    android:layout_marginBottom="@dimen/_30sdp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/registerFragmentBTN"
+                    app:layout_constraintTop_toBottomOf="@+id/registerFragmentBTN"
+                    android:layout_marginLeft="@dimen/_50sdp" />
+
+                <TextView
+                    android:id="@+id/signinRegisterFragmentBTN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:layout_marginLeft="@dimen/_5sdp"
+                    android:text="@string/login"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_10ssp"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView4"
+                    app:layout_constraintStart_toEndOf="@+id/textView4"
+                    app:layout_constraintTop_toTopOf="@+id/textView4" />
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="@dimen/_20sdp"
+                    android:layout_height="@dimen/_20sdp"
+                    android:layout_marginEnd="@dimen/_20sdp"
+                    android:layout_marginRight="@dimen/_20sdp"
+                    android:src="@drawable/chat_1"
+                    app:layout_constraintBottom_toBottomOf="@+id/signinRegisterFragmentBTN"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/signinRegisterFragmentBTN" />
+
+                <TextView
+                    android:id="@+id/faqLoginFragmentTV"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/faq"
+                    android:textSize="@dimen/_14ssp"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:textColor="@color/white"
+                    app:layout_constraintBottom_toBottomOf="@+id/imageView2"
+                    app:layout_constraintEnd_toStartOf="@+id/imageView2"
+                    app:layout_constraintTop_toTopOf="@+id/imageView2"
+                    android:layout_marginRight="@dimen/_5sdp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -145,7 +241,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_16sdp"
             android:text="@string/loading"
-            android:textColor="@color/purple_700"            android:textSize="@dimen/_13ssp"
+            android:textColor="@color/purple_700"
+            android:textSize="@dimen/_13ssp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/loginPB" />

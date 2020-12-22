@@ -31,6 +31,8 @@ class LoginFragment : Fragment(), View.OnClickListener {
 
         loginFragmentBTN.setOnClickListener(this)
         signupLoginFragmentBTN.setOnClickListener(this)
+        forgotUsernameLoginFragmentTV.setOnClickListener(this)
+        forgotPasswordLoginFragmentTV.setOnClickListener(this)
 
     }
 
@@ -41,6 +43,12 @@ class LoginFragment : Fragment(), View.OnClickListener {
             }
             R.id.signupLoginFragmentBTN ->{
                 findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+            }
+            R.id.forgotUsernameLoginFragmentTV ->{
+                findNavController().navigate(R.id.action_loginFragment_to_forgetUsernameFragment)
+            }
+            R.id.forgotPasswordLoginFragmentTV ->{
+                findNavController().navigate(R.id.action_loginFragment_to_forgetPasswordFragment)
             }
         }
     }

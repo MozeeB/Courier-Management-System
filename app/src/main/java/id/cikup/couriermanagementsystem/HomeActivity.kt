@@ -22,6 +22,8 @@ class HomeActivity : AppCompatActivity() {
 
         navController = findNavController(R.id.nav_host_fragment_home)
         navView.setupWithNavController(navController)
+        navView.itemIconTintList = null
+
     }
 
     override fun onBackPressed() {
