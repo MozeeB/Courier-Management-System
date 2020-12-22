@@ -241,9 +241,11 @@
         android:layout_width="@dimen/_210sdp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_10sdp"
+        android:paddingStart="@dimen/_10sdp"
         android:background="@drawable/custom_edt"
         app:layout_constraintStart_toStartOf="@+id/cardView6"
-        app:layout_constraintTop_toBottomOf="@+id/cardView6" />
+        app:layout_constraintTop_toBottomOf="@+id/cardView6"
+        android:paddingLeft="@dimen/_10sdp" />
 
     <ImageView
         android:id="@+id/kirimChatDasboardFragmentIV"
