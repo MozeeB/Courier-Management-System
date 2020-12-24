@@ -1,16 +1,21 @@
 package id.cikup.couriermanagementsystem.ui.dashboard
 
-import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.Window
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
@@ -19,18 +24,21 @@ import id.cikup.couriermanagementsystem.data.model.Message
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import kotlinx.android.synthetic.main.fragment_dashboard.*
 
-class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener {
+
+class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener,
+    OnMapReadyCallback {
 
     private val firebaseDb = FirebaseFirestore.getInstance()
 
 
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
+    private lateinit var googleMap: GoogleMap
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
@@ -48,6 +56,11 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         }
 
         getMessage()
+
+        // Create Maps
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment!!.getMapAsync(this)
     }
 
 
@@ -59,20 +72,24 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         when (p0?.id) {
             R.id.kirimChatDasboardFragmentIV -> {
                 if (!chatDashboardFragmentEDT.text.isNullOrEmpty()) {
-                    val message = Message(userId, chatDashboardFragmentEDT.text.toString(), System.currentTimeMillis())
+                    val message = Message(
+                        userId,
+                        chatDashboardFragmentEDT.text.toString(),
+                        System.currentTimeMillis()
+                    )
                     firebaseDb.collection("Chats")
-                            .document("2")
-                            .collection("Message")
-                            .document()
-                            .set(message)
+                        .document("2")
+                        .collection("Message")
+                        .document()
+                        .set(message)
                     chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
                 }
             }
-            R.id.logOut ->{
+            R.id.logOut -> {
                 val builder = AlertDialog.Builder(requireContext())
                 builder.setTitle("Log Out")
                 builder.setMessage("Apakah anda yakin ingin log out?")
-                builder.setPositiveButton("Ya") {dialog, which ->
+                builder.setPositiveButton("Ya") { dialog, which ->
                     FirebaseAuth.getInstance().signOut()
                     findNavController().navigate(R.id.action_navigation_dashboard_to_mainActivity)
                 }
@@ -83,7 +100,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 val dialog: AlertDialog = builder.create()
                 dialog.show()
 
-                }
+            }
             }
     }
 
@@ -105,7 +122,9 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                                         if (message != null) {
                                             conversationAdapter.addMessage(message)
                                             chatDashboardFragmentRV.post {
-                                                chatDashboardFragmentRV.smoothScrollToPosition(conversationAdapter.itemCount - 1)
+                                                chatDashboardFragmentRV.smoothScrollToPosition(
+                                                    conversationAdapter.itemCount - 1
+                                                )
                                             }
                                         }
                                     }
@@ -115,5 +134,21 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     }
                 }
 
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        this.googleMap = googleMap
+        val idnBoardingSchool = LatLng(-6.445968, 106.953565)
+        this.googleMap.addMarker(
+            MarkerOptions()
+                .position(idnBoardingSchool)
+                .title("IDN Boarding School")
+        )
+        this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        // initial camera
+        val cameraPosition = CameraPosition.builder().zoom(15.0f)
+            .target(idnBoardingSchool)
+        val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
+        this.googleMap.animateCamera(cameraUpdate)
     }
 }
