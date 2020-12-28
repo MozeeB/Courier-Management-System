@@ -250,7 +250,7 @@
 
                 <EditText
                     android:id="@+id/chatDashboardFragmentEDT"
-                    android:layout_width="@dimen/_210sdp"
+                    android:layout_width="@dimen/_200sdp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/_10sdp"
                     android:background="@drawable/custom_edt"
@@ -261,12 +261,29 @@
 
                 <ImageView
                     android:id="@+id/kirimChatDasboardFragmentIV"
-                    android:layout_width="@dimen/_50sdp"
-                    android:layout_height="@dimen/_40sdp"
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:layout_marginEnd="@dimen/_40sdp"
+                    android:layout_marginRight="@dimen/_20sdp"
+                    android:layout_marginStart="@dimen/_10sdp"
                     android:src="@drawable/polygon_2"
                     app:layout_constraintBottom_toBottomOf="@+id/chatDashboardFragmentEDT"
                     app:layout_constraintEnd_toEndOf="@+id/cardView6"
-                    app:layout_constraintTop_toTopOf="@+id/chatDashboardFragmentEDT" />
+                    app:layout_constraintStart_toEndOf="@+id/chatDashboardFragmentEDT"
+                    app:layout_constraintTop_toTopOf="@+id/chatDashboardFragmentEDT"
+                    android:layout_marginLeft="@dimen/_10sdp" />
+
+
+                <ImageView
+                    android:id="@+id/attachmentDashboardFragmentIV"
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:src="@drawable/ic_baseline_add_circle_24"
+                    app:layout_constraintBottom_toBottomOf="@+id/chatDashboardFragmentEDT"
+                    app:layout_constraintEnd_toEndOf="@+id/cardView6"
+                    app:layout_constraintTop_toTopOf="@+id/chatDashboardFragmentEDT"
+                    android:layout_marginRight="@dimen/_10sdp" />
 
                 <TextView
                     android:id="@+id/textView9"

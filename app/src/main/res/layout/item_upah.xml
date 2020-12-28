@@ -31,7 +31,7 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/streetNameItemViewTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_10sdp"
@@ -51,9 +51,9 @@
                 android:layout_marginLeft="@dimen/_10sdp"
                 android:text="@string/dummy_price"
                 android:textSize="@dimen/_12ssp"
-                app:layout_constraintBottom_toBottomOf="@+id/textView3"
+                app:layout_constraintBottom_toBottomOf="@+id/streetNameItemViewTV"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/textView3" />
+                app:layout_constraintTop_toTopOf="@+id/streetNameItemViewTV" />
 
             <TextView
                 android:id="@+id/distanceAtoBUpahItemViewTV"
@@ -63,9 +63,9 @@
                 android:layout_marginRight="@dimen/_10sdp"
                 android:text="@string/dummy_distance"
                 android:textSize="@dimen/_12ssp"
-                app:layout_constraintBottom_toBottomOf="@+id/textView3"
+                app:layout_constraintBottom_toBottomOf="@+id/streetNameItemViewTV"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/textView3" />
+                app:layout_constraintTop_toTopOf="@+id/streetNameItemViewTV" />
 
             <View
                 android:id="@+id/view3"
@@ -75,7 +75,7 @@
                 android:background="@color/black"
                 app:layout_constraintEnd_toEndOf="@+id/distanceAtoBUpahItemViewTV"
                 app:layout_constraintStart_toStartOf="@+id/priceAtoBUpahItemViewTV"
-                app:layout_constraintTop_toBottomOf="@+id/textView3" />
+                app:layout_constraintTop_toBottomOf="@+id/streetNameItemViewTV" />
 
             <TextView
                 android:id="@+id/bToCTV"
