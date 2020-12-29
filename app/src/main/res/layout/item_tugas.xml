@@ -21,8 +21,8 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/textView3"
-                android:layout_width="@dimen/_200sdp"
+                android:id="@+id/streetNameItemViewTV"
+                android:layout_width="@dimen/_170sdp"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/_10sdp"
                 android:text="@string/dummy_street"

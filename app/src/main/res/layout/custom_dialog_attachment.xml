@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <TextView
+        android:id="@+id/videoDialogTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Video"
+        android:textAlignment="center"
+        android:layout_margin="@dimen/_20sdp"
+        android:textSize="@dimen/_18ssp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/gambarDialogTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_20sdp"
+        android:gravity="center_horizontal"
+        android:text="Gambar"
+        android:textAlignment="center"
+        android:textSize="@dimen/_18ssp"
+        app:layout_constraintBottom_toBottomOf="@+id/videoDialogTV"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/videoDialogTV" />
+
+
+    <TextView
+        android:id="@+id/audioDialogTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:text="Audio"
+        android:textAlignment="center"
+        android:layout_marginBottom="@dimen/_20sdp"
+        android:textSize="@dimen/_18ssp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/videoDialogTV"
+        app:layout_constraintTop_toBottomOf="@+id/videoDialogTV"
+        android:gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/documentDialogTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="Document"
+        android:textAlignment="center"
+        android:textSize="@dimen/_18ssp"
+        app:layout_constraintBottom_toBottomOf="@+id/audioDialogTV"
+        app:layout_constraintEnd_toEndOf="@+id/gambarDialogTV"
+        app:layout_constraintTop_toTopOf="@+id/audioDialogTV" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

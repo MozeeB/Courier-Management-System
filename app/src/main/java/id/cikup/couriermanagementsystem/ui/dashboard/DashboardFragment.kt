@@ -1,11 +1,17 @@
 package id.cikup.couriermanagementsystem.ui.dashboard
 
+import android.Manifest
+import android.app.Activity.RESULT_OK
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.location.Geocoder
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -32,11 +38,23 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     OnMapReadyCallback {
 
     private val firebaseDb = FirebaseFirestore.getInstance()
-
-
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
-    private lateinit var googleMap: GoogleMap
+
+    companion object{
+        var DOCX: Int = 1
+        var AUDIO: Int = 2
+        var VIDEO: Int = 3
+        var IMAGE:Int = 4
+    }
+
+    private val PermissionsRequestCode = 123
+    private lateinit var managePermissions: ManagePermissions
+
+
+    lateinit var uri: Uri
+    lateinit var mStorage: StorageReference
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,8 +67,14 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        val list = listOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+        managePermissions = ManagePermissions(requireContext(), list, PermissionsRequestCode)
+
         kirimChatDasboardFragmentIV.setOnClickListener(this)
         logOut.setOnClickListener(this)
+        attachmentDashboardFragmentIV.setOnClickListener(this)
 
         chatDashboardFragmentRV.apply {
             setHasFixedSize(false)
@@ -108,6 +132,70 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 val dialog: AlertDialog = builder.create()
                 dialog.show()
 
+            }
+            R.id.attachmentDashboardFragmentIV -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                    if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
+                        managePermissions.showAlert()
+                    } else {
+                        Utils.INSTANCE.showAttachmentChooser(this)
+                    }
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
+    ) {
+        when (requestCode) {
+            PermissionsRequestCode -> {
+                val isPermissionsGranted = managePermissions.processPermissionsResult(grantResults)
+                if (isPermissionsGranted) {
+                    // Do the task now
+                    Toast.makeText(context, "Permissions granted.", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "Permissions denied.", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+        }
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                DOCX -> {
+                    uri = data?.data!!
+                    //                uriTxt.text = uri.toString()
+                    //                upload ()
+                    Toast.makeText(requireContext(), uri.toString(), Toast.LENGTH_LONG).show()
+                }
+                AUDIO -> {
+                    uri = data?.data!!
+                    //                uriTxt.text = uri.toString()
+                    //                upload ()
+                    Toast.makeText(requireContext(), uri.toString(), Toast.LENGTH_LONG).show()
+
+                }
+                VIDEO -> {
+                    uri = data?.data!!
+                    //                uriTxt.text = uri.toString()
+                    //                upload ()
+                    Toast.makeText(requireContext(), Utils.INSTANCE.filePath.toString(), Toast.LENGTH_LONG).show()
+
+                }
+                IMAGE ->{
+                    uri = data?.data!!
+                    //                uriTxt.text = uri.toString()
+                    //                upload ()
+                    Toast.makeText(requireContext(), uri.toString(), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
             }
             }
     }

@@ -5,17 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.firebase.firestore.FirebaseFirestore
 import id.cikup.couriermanagementsystem.R
+import id.cikup.couriermanagementsystem.data.model.TugasModel
+import kotlinx.android.synthetic.main.fragment_tugas.*
 
 class TugasFragment : Fragment() {
 
 
+    private val firebaseDb = FirebaseFirestore.getInstance()
+
+
+    var tugasAdaper:TugasAdaper? = null
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -29,6 +32,32 @@ class TugasFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        setUpRecyclerView()
+
+    }
+
+    fun setUpRecyclerView(){
+        val query = firebaseDb.collection("Tugas")
+            .document("LTVWUsRbvdOoUujHvmCokeH6uKu2")
+            .collection("tugas")
+
+        val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
+            .setQuery(query, TugasModel::class.java)
+            .build()
+
+        tugasAdaper = TugasAdaper(firestoreRecyclerOptions)
+        tugasFragmentRV.layoutManager = LinearLayoutManager(requireContext())
+        tugasFragmentRV.adapter = tugasAdaper
+    }
+
+    override fun onStart() {
+        super.onStart()
+        tugasAdaper?.startListening()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        tugasAdaper?.stopListening()
     }
 
 
