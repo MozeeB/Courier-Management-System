@@ -1,6 +1,8 @@
 package id.cikup.couriermanagementsystem.ui.dashboard
 
+import android.location.Geocoder
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +25,7 @@ import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.Message
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import kotlinx.android.synthetic.main.fragment_dashboard.*
+import java.util.*
 
 
 class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener,
@@ -61,6 +64,11 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         val mapFragment =
             childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment!!.getMapAsync(this)
+
+        // Get Location
+        val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
+        val origin = geocoder.getFromLocation(-6.525111, 107.038441, 1)
+        Log.d("Tes", "Tes ${origin[0].getAddressLine(0)}")
     }
 
 
@@ -138,7 +146,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     override fun onMapReady(googleMap: GoogleMap) {
         this.googleMap = googleMap
-        val idnBoardingSchool = LatLng(-6.445968, 106.953565)
+        val idnBoardingSchool = LatLng(-6.525121364593061, 107.03854839255234)
         this.googleMap.addMarker(
             MarkerOptions()
                 .position(idnBoardingSchool)
