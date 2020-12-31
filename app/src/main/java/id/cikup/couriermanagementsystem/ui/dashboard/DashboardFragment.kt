@@ -4,15 +4,17 @@ import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.location.Geocoder
 import android.net.Uri
 import android.os.Build
-import android.location.Geocoder
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.Window
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -21,40 +23,58 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.StorageReference
+import com.google.maps.android.PolyUtil
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.Message
+import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
+import id.cikup.couriermanagementsystem.helper.Utils
 import kotlinx.android.synthetic.main.fragment_dashboard.*
+import org.koin.android.viewmodel.ext.android.viewModel
 import java.util.*
 
 
-class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener,
-    OnMapReadyCallback {
+class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener {
 
     private val firebaseDb = FirebaseFirestore.getInstance()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
 
-    companion object{
+    companion object {
         var DOCX: Int = 1
         var AUDIO: Int = 2
         var VIDEO: Int = 3
-        var IMAGE:Int = 4
+        var IMAGE: Int = 4
+
+        const val POLYGON_STROKE_WIDTH_PX = 8
     }
 
     private val PermissionsRequestCode = 123
     private lateinit var managePermissions: ManagePermissions
 
-
     lateinit var uri: Uri
     lateinit var mStorage: StorageReference
+    private lateinit var googleMap: GoogleMap
+    private var routes: String? = null
 
+    private val viewModel by viewModel<DashboardVM>()
+
+    private val callback = OnMapReadyCallback { googleMap ->
+        this.googleMap = googleMap
+
+        mapsMarkers()
+    }
+
+    private val callbackMapsArea = OnMapReadyCallback {
+        this.googleMap = it
+
+        mapsRoutesDirection()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,7 +88,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         super.onActivityCreated(savedInstanceState)
 
         val list = listOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE
+            Manifest.permission.READ_EXTERNAL_STORAGE
         )
         managePermissions = ManagePermissions(requireContext(), list, PermissionsRequestCode)
 
@@ -86,15 +106,45 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
         // Create Maps
         val mapFragment =
-            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-        mapFragment!!.getMapAsync(this)
+                childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment?.getMapAsync(callback)
 
-        // Get Location
-        val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
-        val origin = geocoder.getFromLocation(-6.525111, 107.038441, 1)
-        Log.d("Tes", "Tes ${origin[0].getAddressLine(0)}")
+        // Polyline
+        nameLocationMapsDashboardFragmentTV.setOnClickListener {
+            mapFragment?.getMapAsync(callbackMapsArea)
+        }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        with(viewModel) {
+            success.observe(viewLifecycleOwner, {
+                routes = it.routes?.get(0)?.overviewPolyline?.points
+
+                val latStart = it.routes?.get(0)?.legs?.get(0)?.startLocation?.lat
+                val lngStart = it.routes?.get(0)?.legs?.get(0)?.startLocation?.lng
+
+                val latEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lat
+                val lngEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lng
+                drawPolyLineOnMap(
+                    router = routes.toString(),
+                    origin = LatLng(
+                        latStart.toString().toDouble(),
+                        lngStart.toString().toDouble()
+                    ),
+                    destination = LatLng(
+                        latEnd.toString().toDouble(),
+                        lngEnd.toString().toDouble()
+                    )
+                )
+            })
+
+            errorMessage.observe(viewLifecycleOwner, {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            })
+        }
+    }
 
     override fun onBackPressed() {
         this.requireActivity().moveTaskToBack(true)
@@ -145,9 +195,9 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     }
 
     override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<String>,
-            grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
     ) {
         when (requestCode) {
             PermissionsRequestCode -> {
@@ -184,10 +234,14 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     uri = data?.data!!
                     //                uriTxt.text = uri.toString()
                     //                upload ()
-                    Toast.makeText(requireContext(), Utils.INSTANCE.filePath.toString(), Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        requireContext(),
+                        Utils.INSTANCE.filePath.toString(),
+                        Toast.LENGTH_LONG
+                    ).show()
 
                 }
-                IMAGE ->{
+                IMAGE -> {
                     uri = data?.data!!
                     //                uriTxt.text = uri.toString()
                     //                upload ()
@@ -196,8 +250,6 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
-            }
-            }
     }
 
 
@@ -229,16 +281,18 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                         }
                     }
                 }
-
     }
 
-    override fun onMapReady(googleMap: GoogleMap) {
-        this.googleMap = googleMap
-        val idnBoardingSchool = LatLng(-6.525121364593061, 107.03854839255234)
+    private fun mapsMarkers(
+        lat: Double = -6.525121364593061,
+        lng: Double = 107.03854839255234,
+        title: String = "IDN Boarding School"
+    ) {
+        val idnBoardingSchool = LatLng(lat, lng)
         this.googleMap.addMarker(
             MarkerOptions()
                 .position(idnBoardingSchool)
-                .title("IDN Boarding School")
+                .title(title)
         )
         this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
         // initial camera
@@ -246,5 +300,68 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
             .target(idnBoardingSchool)
         val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
         this.googleMap.animateCamera(cameraUpdate)
+    }
+
+    private fun mapsRoutesDirection() {
+        // Get Location
+        val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
+        val origin = geocoder.getFromLocation(-6.525111, 107.038441, 1)
+        val destination = geocoder.getFromLocation(-6.523938, 107.040029, 1)
+        Log.d("Tes", "Tes ${origin[0].getAddressLine(0)} - ${destination[0].getAddressLine(0)}")
+
+        viewModel.getDirectionMaps(
+            origin = origin[0].getAddressLine(0),
+            destination = destination[0].getAddressLine(0),
+            key = getString(R.string.google_maps_key)
+        )
+    }
+
+    // Draw polyline on map
+    private fun drawPolyLineOnMap(router: String, origin: LatLng, destination: LatLng) {
+        val polyOptions = PolylineOptions()
+        polyOptions.color(Color.BLUE)
+        polyOptions.width(8f)
+        polyOptions.addAll(PolyUtil.decode(router))
+        googleMap.clear()
+        googleMap.addPolyline(polyOptions)
+        googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+
+        //BOUND_PADDING is an int to specify padding of bound.. try 100.
+        val bounds: LatLngBounds = LatLngBounds.Builder()
+            .include(origin)
+            .include(destination)
+            .build()
+
+        // Gets screen size
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+        val padding = width * 0.20
+        val location = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding.toInt())
+        googleMap.animateCamera(location)
+        googleMap.addMarker(MarkerOptions().position(origin))
+        googleMap.addMarker(MarkerOptions().position(destination))
+//        googleMap.isTrafficEnabled = true
+    }
+
+    private fun mapsAreas() {
+        val polygon1 = googleMap.addPolygon(
+            PolygonOptions()
+            .clickable(true)
+            .add(
+                LatLng(-27.457, 153.040),
+                LatLng(-33.852, 151.211),
+                LatLng(-37.813, 144.962),
+                LatLng(-34.928, 138.599)))
+
+        polygon1.tag = "A"
+        polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()
+
+
+        // Position the map's camera near Alice Springs in the center of Australia,
+        // and set the zoom factor so most of Australia shows on the screen.
+
+        // Position the map's camera near Alice Springs in the center of Australia,
+        // and set the zoom factor so most of Australia shows on the screen.
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(-23.684, 133.903), 2f))
     }
 }
