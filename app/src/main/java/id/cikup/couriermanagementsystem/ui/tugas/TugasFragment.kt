@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.TugasModel
@@ -37,8 +38,9 @@ class TugasFragment : Fragment() {
     }
 
     fun setUpRecyclerView(){
+        val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
         val query = firebaseDb.collection("Tugas")
-            .document("LTVWUsRbvdOoUujHvmCokeH6uKu2")
+            .document(currentUserID)
             .collection("tugas")
 
         val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()

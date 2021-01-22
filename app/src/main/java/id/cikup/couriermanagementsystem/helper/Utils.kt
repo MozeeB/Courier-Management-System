@@ -1,6 +1,7 @@
 package id.cikup.couriermanagementsystem.helper
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
@@ -11,16 +12,21 @@ import android.util.Log
 import android.view.Gravity
 import android.view.Window
 import android.view.WindowManager
-import android.widget.ImageView
-import androidx.core.app.ActivityCompat.startActivityForResult
+import android.widget.EditText
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.ui.dashboard.DashboardFragment.Companion.AUDIO
+import id.cikup.couriermanagementsystem.ui.dashboard.DashboardFragment.Companion.CAMERA_DASHBOARD
 import id.cikup.couriermanagementsystem.ui.dashboard.DashboardFragment.Companion.DOCX
-import id.cikup.couriermanagementsystem.ui.dashboard.DashboardFragment.Companion.IMAGE
+import id.cikup.couriermanagementsystem.ui.dashboard.DashboardFragment.Companion.GALLERY_DASHBOARD
+import id.cikup.couriermanagementsystem.ui.dashboard.DashboardFragment.Companion.IMAGE_GALLERY
 import id.cikup.couriermanagementsystem.ui.dashboard.DashboardFragment.Companion.VIDEO
+import id.cikup.couriermanagementsystem.ui.reimburse.ReimburseFragment.Companion.CAMERA
+import id.cikup.couriermanagementsystem.ui.reimburse.ReimburseFragment.Companion.GALLERY
 import kotlinx.android.synthetic.main.custom_dialog_attachment.*
+import kotlinx.android.synthetic.main.custom_dialog_attachment.cameraDialogTV
+import kotlinx.android.synthetic.main.custom_dialog_attachment.galleryDialogTV
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -40,6 +46,30 @@ class Utils {
     var file: File? = null
     var filePath: Uri? = null
     private var dialog: Dialog? = null
+
+
+    @SuppressLint("WrongViewCast")
+    fun showImageDashboardChooser(fragment: Fragment){
+        dialog = fragment.context?.let { Dialog(it) }
+        dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog!!.setCancelable(true)
+        dialog!!.setContentView(R.layout.custom_pick_image)
+        val width = (fragment.resources.displayMetrics.widthPixels * 0.90).toInt()
+        dialog!!.window?.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT)
+        dialog!!.window?.setGravity(Gravity.CENTER)
+
+        dialog?.galleryDialogTV?.setOnClickListener {
+            takePhotoFromGalery(fragment, GALLERY_DASHBOARD)
+            dialog?.dismiss()
+
+        }
+        dialog?.cameraDialogTV?.setOnClickListener {
+            takePictureFromCamera(fragment, CAMERA_DASHBOARD)
+            dialog?.dismiss()
+
+        }
+        dialog?.show()
+    }
 
     @SuppressLint("LogNotTimber")
     private fun takePictureFromCamera(fragment: Fragment, reqCode: Int) {
@@ -99,6 +129,29 @@ class Utils {
     }
 
     @SuppressLint("WrongViewCast")
+    fun showImageChooser(fragment: Fragment){
+        dialog = fragment.context?.let { Dialog(it) }
+        dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog!!.setCancelable(true)
+        dialog!!.setContentView(R.layout.custom_pick_image)
+        val width = (fragment.resources.displayMetrics.widthPixels * 0.90).toInt()
+        dialog!!.window?.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT)
+        dialog!!.window?.setGravity(Gravity.CENTER)
+
+        dialog?.galleryDialogTV?.setOnClickListener {
+            takePhotoFromGalery(fragment, GALLERY)
+            dialog?.dismiss()
+
+        }
+        dialog?.cameraDialogTV?.setOnClickListener {
+            takePictureFromCamera(fragment, CAMERA)
+            dialog?.dismiss()
+
+        }
+        dialog?.show()
+    }
+
+    @SuppressLint("WrongViewCast")
     fun showAttachmentChooser(fragment: Fragment) {
         dialog = fragment.context?.let { Dialog(it) }
         dialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -108,17 +161,22 @@ class Utils {
         dialog!!.window?.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT)
         dialog!!.window?.setGravity(Gravity.CENTER)
 
-        dialog?.videoDialogTV?.setOnClickListener {
-            dispatchTakeVideoIntent(fragment)
+        dialog?.galleryDialogTV?.setOnClickListener {
+//            dispatchTakeVideoIntent(fragment)
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = "video/*"
+            intent.action = Intent.ACTION_GET_CONTENT
+            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+            fragment.startActivityForResult(intent, AUDIO)
             dialog?.dismiss()
         }
-        dialog?.gambarDialogTV?.setOnClickListener {
-            takePhotoFromGalery(fragment, IMAGE)
+        dialog?.cameraDialogTV?.setOnClickListener {
+            takePhotoFromGalery(fragment, IMAGE_GALLERY)
             dialog?.dismiss()
         }
         dialog?.audioDialogTV?.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "*/*"
+            intent.type = "audio/*"
             intent.action = Intent.ACTION_GET_CONTENT
             intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
             fragment.startActivityForResult(intent, AUDIO)
@@ -163,6 +221,45 @@ class Utils {
                 }
             }
         }
+    }
+
+    fun getBitmapFile(data: Intent, fragment: Fragment): File {
+        val selectedImage = data.data
+        val cursor = selectedImage?.let {
+            fragment.context?.contentResolver?.query(
+                it,
+                arrayOf<String>(android.provider.MediaStore.Images.ImageColumns.DATA),
+                null,
+                null,
+                null
+            )
+        }
+        cursor?.moveToFirst()
+        val idx = cursor?.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
+        val selectedImagePath = cursor?.getString(idx!!)
+        cursor?.close()
+        return File(selectedImagePath)
+    }
+
+    fun chooseDate(context: Context, editText: EditText) {
+        val calendar = Calendar.getInstance()
+        val date =
+            DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, monthOfYear)
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
+                val myFormat = "dd MMM yyyy" //In which you need put here
+                val sdf = SimpleDateFormat(myFormat, Locale.US)
+
+                editText.setText(sdf.format(calendar.getTime()))
+            }
+
+        DatePickerDialog(
+            context, date, calendar
+                .get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
 }

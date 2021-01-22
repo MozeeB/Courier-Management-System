@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
-        android:id="@+id/dateUpdahItemView"
+        android:id="@+id/dateRiwayatItemView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dummy_date"
@@ -23,7 +23,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dateUpdahItemView">
+        app:layout_constraintTop_toBottomOf="@+id/dateRiwayatItemView">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -43,12 +43,12 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/priceAtoBUpahItemViewTV"
+                android:id="@+id/statusAtoBUpahItemViewTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/_10sdp"
                 android:layout_marginLeft="@dimen/_10sdp"
-                android:text="@string/dummy_price"
+                android:text="@string/selesai"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintBottom_toBottomOf="@+id/streetNameItemViewTV"
                 app:layout_constraintStart_toStartOf="parent"
@@ -73,7 +73,7 @@
                 android:layout_marginTop="@dimen/_5sdp"
                 android:background="@color/black"
                 app:layout_constraintEnd_toEndOf="@+id/distanceAtoBUpahItemViewTV"
-                app:layout_constraintStart_toStartOf="@+id/priceAtoBUpahItemViewTV"
+                app:layout_constraintStart_toStartOf="@+id/statusAtoBUpahItemViewTV"
                 app:layout_constraintTop_toBottomOf="@+id/streetNameItemViewTV" />
 
             <TextView
@@ -88,13 +88,13 @@
                 app:layout_constraintTop_toBottomOf="@+id/view3" />
 
             <TextView
-                android:id="@+id/priceBtoCUpahItemView"
+                android:id="@+id/statusBtoCUpahItemView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/dummy_price"
+                android:text="@string/selesai"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintBottom_toBottomOf="@+id/bToCTV"
-                app:layout_constraintStart_toStartOf="@+id/priceAtoBUpahItemViewTV"
+                app:layout_constraintStart_toStartOf="@+id/statusAtoBUpahItemViewTV"
                 app:layout_constraintTop_toTopOf="@+id/bToCTV" />
 
             <TextView
@@ -114,7 +114,7 @@
                 android:layout_marginTop="@dimen/_5sdp"
                 android:background="@color/black"
                 app:layout_constraintEnd_toEndOf="@+id/distanceBtoCUpahItemViewTV"
-                app:layout_constraintStart_toStartOf="@+id/priceBtoCUpahItemView"
+                app:layout_constraintStart_toStartOf="@+id/statusBtoCUpahItemView"
                 app:layout_constraintTop_toBottomOf="@+id/bToCTV" />
 
             <TextView
@@ -129,12 +129,12 @@
                 app:layout_constraintTop_toBottomOf="@+id/view4" />
 
             <TextView
-                android:id="@+id/priceReimburse1UpahItemViewTV"
+                android:id="@+id/statusReimburse1UpahItemViewTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/dummy_price"
+                android:text="@string/proses"
                 android:textSize="@dimen/_12ssp"
-                app:layout_constraintStart_toStartOf="@+id/priceBtoCUpahItemView"
+                app:layout_constraintStart_toStartOf="@+id/statusBtoCUpahItemView"
                 app:layout_constraintTop_toTopOf="@+id/reimburse1TV" />
 
             <TextView
@@ -153,7 +153,7 @@
                 android:layout_marginTop="@dimen/_5sdp"
                 android:background="@color/black"
                 app:layout_constraintEnd_toEndOf="@+id/tolReimburse1UpahItemViewTV"
-                app:layout_constraintStart_toStartOf="@+id/priceReimburse1UpahItemViewTV"
+                app:layout_constraintStart_toStartOf="@+id/statusReimburse1UpahItemViewTV"
                 app:layout_constraintTop_toBottomOf="@+id/reimburse1TV" />
 
             <TextView
@@ -168,12 +168,12 @@
                 app:layout_constraintTop_toBottomOf="@+id/view5" />
 
             <TextView
-                android:id="@+id/priceReimburse2UpdahItemViewTV"
+                android:id="@+id/statusReimburse2UpdahItemViewTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/dummy_price"
+                android:text="@string/batalkan"
                 android:textSize="@dimen/_12ssp"
-                app:layout_constraintStart_toStartOf="@+id/priceReimburse1UpahItemViewTV"
+                app:layout_constraintStart_toStartOf="@+id/statusReimburse1UpahItemViewTV"
                 app:layout_constraintTop_toTopOf="@+id/reimburse2TV" />
 
             <TextView
@@ -193,7 +193,7 @@
                 android:background="@color/black"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/bensinReimburse2UpahItemviewTV"
-                app:layout_constraintStart_toStartOf="@+id/priceReimburse2UpdahItemViewTV"
+                app:layout_constraintStart_toStartOf="@+id/statusReimburse2UpdahItemViewTV"
                 app:layout_constraintTop_toBottomOf="@+id/reimburse2TV" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

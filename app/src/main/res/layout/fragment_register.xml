@@ -53,6 +53,7 @@
                     android:layout_marginTop="@dimen/_50sdp"
                     android:background="@drawable/custom_edt"
                     android:hint="@string/first_name"
+                    android:inputType="textPersonName"
                     android:paddingStart="@dimen/_10sdp"
                     android:paddingLeft="@dimen/_10sdp"
                     app:layout_constraintStart_toStartOf="parent"
@@ -66,6 +67,7 @@
                     android:layout_marginLeft="@dimen/_20sdp"
                     android:background="@drawable/custom_edt"
                     android:hint="@string/back_name"
+                    android:inputType="textPersonName"
                     android:layout_marginEnd="@dimen/_30sdp"
                     android:paddingStart="@dimen/_10sdp"
                     android:paddingLeft="@dimen/_10sdp"
@@ -85,6 +87,7 @@
                     android:hint="@string/username"
                     android:paddingStart="@dimen/_10sdp"
                     android:paddingLeft="@dimen/_10sdp"
+                    android:inputType="textPersonName"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/firstNameRegisterFragmentEDT" />
@@ -104,6 +107,92 @@
                     app:layout_constraintTop_toBottomOf="@+id/usernameRegisterFragmentEDT" />
 
                 <EditText
+                    android:id="@+id/telephoneRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/telephone"
+                    android:inputType="phone"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/emailRegisterFragmentEDT" />
+
+
+                <EditText
+                    android:id="@+id/addressRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/address"
+                    android:inputType="text"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/telephoneRegisterFragmentEDT" />
+
+
+                <EditText
+                    android:id="@+id/cityRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/city"
+                    android:inputType="text"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/addressRegisterFragmentEDT" />
+
+                <EditText
+                    android:id="@+id/provinceRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/province"
+                    android:inputType="text"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cityRegisterFragmentEDT" />
+
+                <EditText
+                    android:id="@+id/zipRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/zip"
+                    android:inputType="number"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/provinceRegisterFragmentEDT" />
+
+                <EditText
+                    android:id="@+id/countryRegisterFragmentEDT"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:hint="@string/country"
+                    android:inputType="text"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingLeft="@dimen/_10sdp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/zipRegisterFragmentEDT" />
+
+                <EditText
                     android:id="@+id/passwordRegisterFragmentEDT"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -112,9 +201,10 @@
                     android:hint="@string/password"
                     android:paddingStart="@dimen/_10sdp"
                     android:paddingLeft="@dimen/_10sdp"
+                    android:inputType="textPassword"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/emailRegisterFragmentEDT" />
+                    app:layout_constraintTop_toBottomOf="@+id/countryRegisterFragmentEDT" />
 
                 <EditText
                     android:id="@+id/confirmPassRegisterFragmentEDT"
@@ -125,22 +215,12 @@
                     android:hint="@string/confirm_password"
                     android:paddingStart="@dimen/_10sdp"
                     android:paddingLeft="@dimen/_10sdp"
+                    android:inputType="textPassword"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/passwordRegisterFragmentEDT" />
 
-                <EditText
-                    android:id="@+id/dateRegisterFragmentEDT"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/_20sdp"
-                    android:background="@drawable/custom_edt"
-                    android:hint="@string/tanggal_bulan_tahun"
-                    android:paddingStart="@dimen/_10sdp"
-                    android:paddingLeft="@dimen/_10sdp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/confirmPassRegisterFragmentEDT" />
+
 
                 <Button
                     android:id="@+id/registerFragmentBTN"
@@ -150,12 +230,12 @@
                     android:hint="@string/register"
                     android:textSize="@dimen/_14ssp"
                     android:textStyle="bold"
-                    android:textColor="@color/black"
+                    android:textColor="@android:color/black"
                     android:padding="@dimen/_15sdp"
                     android:layout_margin="@dimen/_20sdp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/dateRegisterFragmentEDT"
+                    app:layout_constraintTop_toBottomOf="@+id/confirmPassRegisterFragmentEDT"
                     tools:targetApi="lollipop" />
 
                 <TextView

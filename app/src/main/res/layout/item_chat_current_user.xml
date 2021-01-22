@@ -8,5 +8,8 @@
         android:id="@+id/txt_message"
         style="@style/MessageBox"
         android:background="@color/color2"
-        android:textColor="@android:color/black" />
+        android:autoLink="web"
+        android:clickable="true"
+        android:textColor="@android:color/black"
+        android:focusable="true" />
 </LinearLayout>

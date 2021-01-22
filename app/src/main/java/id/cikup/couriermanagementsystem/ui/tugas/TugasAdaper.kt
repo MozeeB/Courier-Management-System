@@ -1,3 +1,4 @@
+
 package id.cikup.couriermanagementsystem.ui.tugas
 
 import android.view.LayoutInflater
@@ -11,11 +12,13 @@ import id.cikup.couriermanagementsystem.data.model.TugasModel
 import kotlinx.android.synthetic.main.item_tugas.view.*
 
 
-class TugasAdaper (option: FirestoreRecyclerOptions<TugasModel>)
-    : FirestoreRecyclerAdapter<TugasModel, TugasAdaper.TugasViewHolder>(option){
+class TugasAdaper(option: FirestoreRecyclerOptions<TugasModel>) :
+    FirestoreRecyclerAdapter<TugasModel, TugasAdaper.TugasViewHolder>(option) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TugasViewHolder {
-        return TugasViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_tugas, parent, false))
+        return TugasViewHolder(
+            LayoutInflater.from(parent.context).inflate(R.layout.item_tugas, parent, false)
+        )
     }
 
     override fun onBindViewHolder(

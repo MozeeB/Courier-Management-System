@@ -8,19 +8,34 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
+import androidx.viewpager.widget.ViewPager
+import com.github.nkzawa.emitter.Emitter
+import com.github.nkzawa.socketio.client.Socket
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import id.cikup.couriermanagementsystem.R
+import id.cikup.couriermanagementsystem.data.model.BannerModel
+import id.cikup.couriermanagementsystem.helper.MongoConnetion
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.android.synthetic.main.fragment_login.progressBarHolderLoginCL
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONException
+import java.util.*
 
 class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
 
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    private val firebaseDb = FirebaseFirestore.getInstance()
+
+    var socket: Socket? = null
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_login, container, false)
@@ -34,37 +49,109 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
         signupLoginFragmentBTN.setOnClickListener(this)
         forgotUsernameLoginFragmentTV.setOnClickListener(this)
         forgotPasswordLoginFragmentTV.setOnClickListener(this)
+        faqLoginFragmentTV.setOnClickListener(this)
+
+
+        getBanner()
+
+//        socket = MongoConnetion.getConnection()
+//        socket?.connect()
+//
+//        socket?.on(Socket.EVENT_CONNECT, onConnect)
+//        socket?.on(Socket.EVENT_DISCONNECT, onDisconnect)
+////        socket?.on(Socket.EVENT_CONNECT_ERROR, onConnectError)
+////        socket?.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError)
+//        socket?.on("server_message", onServerMessage)
+//        socket?.on("login_success", onLogin)
 
     }
 
+    private val onConnect = Emitter.Listener {
+        println("Connected to server")
+    }
+    private val onDisconnect = Emitter.Listener {
+        println("Disconnect to server")
+    }
+
+    private val onLogin = Emitter.Listener {
+        CoroutineScope(Dispatchers.Main).launch {
+            progressBarHolderLoginCL.visibility = View.GONE
+            try {
+                Toast.makeText(context, "Login Success", Toast.LENGTH_LONG).show()
+                findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
+            } catch (e: JSONException) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    progressBarHolderLoginCL.visibility = View.GONE
+                }
+                return@launch
+            }
+        }
+
+    }
+
+    private val onServerMessage = Emitter.Listener { args ->
+        CoroutineScope(Dispatchers.Main).launch {
+            progressBarHolderLoginCL.visibility = View.GONE
+            Toast.makeText(context, args[1].toString(), Toast.LENGTH_LONG).show()
+
+        }
+    }
+
+
     override fun onClick(p0: View?) {
-        when(p0?.id){
-            R.id.loginFragmentBTN ->{
+        when (p0?.id) {
+            R.id.loginFragmentBTN -> {
                 loginUser()
             }
-            R.id.signupLoginFragmentBTN ->{
+            R.id.signupLoginFragmentBTN -> {
                 findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
             }
-            R.id.forgotUsernameLoginFragmentTV ->{
+            R.id.forgotUsernameLoginFragmentTV -> {
                 findNavController().navigate(R.id.action_loginFragment_to_forgetUsernameFragment)
             }
-            R.id.forgotPasswordLoginFragmentTV ->{
+            R.id.forgotPasswordLoginFragmentTV -> {
                 findNavController().navigate(R.id.action_loginFragment_to_forgetPasswordFragment)
+            }
+            R.id.faqLoginFragmentTV -> {
+                findNavController().navigate(R.id.action_loginFragment_to_faqFragment)
             }
         }
     }
 
-    private fun loginUser(){
-        progressBarHolderLoginCL.visibility = View.VISIBLE
-        val email:String = emailLoginFragmentEDT.text.toString()
-        val password:String = passwordLoginFragmentEDT.text.toString()
-        when{
+    fun getBanner() {
+        firebaseDb.collection("Banners")
+            .get()
+            .addOnSuccessListener {
+                val banner = it.toObjects(BannerModel::class.java)
+                val bannerAdapter = BannerAdapter(requireContext(), banner)
+                val viewpager = requireActivity().findViewById(R.id.viewPagerBanner) as ViewPager
+                viewpager.adapter = bannerAdapter
+                indicator.setViewPager(viewpager)
+                indicator.count = banner.size
+
+                val timerTask: TimerTask = object : TimerTask() {
+                    override fun run() {
+                        viewpager.post(Runnable {
+                            viewpager.currentItem = (viewpager.currentItem + 1) % banner.size
+                        })
+                    }
+                }
+                val timer = Timer()
+                timer.schedule(timerTask, 3000, 3000)
+            }
+    }
+
+    private fun loginUser() {
+        val email: String = emailLoginFragmentEDT.text.toString()
+        val password: String = passwordLoginFragmentEDT.text.toString()
+        when {
             TextUtils.isEmpty(email) ->
                 Toast.makeText(context, "Email cannot be empty!", Toast.LENGTH_SHORT).show()
             TextUtils.isEmpty(password) ->
                 Toast.makeText(context, "Password cannot be empty!", Toast.LENGTH_SHORT).show()
-
-            else ->{
+            else -> {
+                progressBarHolderLoginCL.visibility = View.VISIBLE
+//                socket?.emit("login", email, password)
                 auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
                     if (it.isSuccessful){
                         progressBarHolderLoginCL.visibility = View.GONE
@@ -76,9 +163,9 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
                     }
                 }
             }
+
         }
     }
-
     override fun onStart() {
         if (auth.currentUser != null){
             //to home

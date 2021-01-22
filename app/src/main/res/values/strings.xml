@@ -64,5 +64,16 @@
     <string name="chat">Chat</string>
     <string name="foto_bukti_penerima">Foto Bukti Penerima</string>
     <string name="forgot_password">Forgot Password?</string>
+    <string name="selesai">Selesai</string>
+    <string name="proses">Proses</string>
+    <string name="batalkan">Batalkan</string>
+    <string name="tanggal">Tanggal :</string>
+    <string name="des_dummy">Deskripsi berasal dari verba describe dan bahasa latin describere yang artinya memaparkan, menguraikan atau melukiskan. Paragraf deskripsi adalah paragraf yang memiliki tujuan memberikan kesan atau impresi kepada para pembaca terhadap objek, peristiwa, gagasan, tempat yang ingin disampaikan penulis secara otentik.</string>
+    <string name="telephone">Telephone</string>
+    <string name="address">Address</string>
+    <string name="city">City</string>
+    <string name="province">Province</string>
+    <string name="zip">Zip</string>
+    <string name="country">Country</string>
 
 </resources>

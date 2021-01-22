@@ -8,5 +8,6 @@ data class UpahModel(
     val reimburse1Price: Int = 0,
     val reimburse1Type: String = "",
     val reimburse2Price: Int = 0,
-    val reimburse2Type: String = ""
+    val reimburse2Type: String = "",
+    val date:String = ""
 )

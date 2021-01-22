@@ -26,6 +26,9 @@
         <action
             android:id="@+id/action_loginFragment_to_forgetUsernameFragment"
             app:destination="@id/forgetUsernameFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_faqFragment"
+            app:destination="@id/faqFragment" />
     </fragment>
     <activity
         android:id="@+id/homeActivity"
@@ -65,4 +68,9 @@
             android:id="@+id/action_forgetUsernameFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/faqFragment"
+        android:name="id.cikup.couriermanagementsystem.ui.main.faq.FaqFragment"
+        android:label="fragment_faq"
+        tools:layout="@layout/fragment_faq" />
 </navigation>
