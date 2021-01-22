@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.StorageReference
 import com.google.maps.android.PolyUtil
 import id.cikup.couriermanagementsystem.R
@@ -64,17 +65,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     private val viewModel by viewModel<DashboardVM>()
 
-    private val callback = OnMapReadyCallback { googleMap ->
-        this.googleMap = googleMap
-
-        mapsMarkers()
-    }
-
-    private val callbackMapsArea = OnMapReadyCallback {
-        this.googleMap = it
-
-        mapsRoutesDirection()
-    }
+    // Maps
+    private var mapFragment: SupportMapFragment? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -104,14 +96,56 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
         getMessage()
 
-        // Create Maps
-        val mapFragment =
-                childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-        mapFragment?.getMapAsync(callback)
+        // Data Maps
+        getDataMaps()
 
-        // Polyline
-        nameLocationMapsDashboardFragmentTV.setOnClickListener {
-            mapFragment?.getMapAsync(callbackMapsArea)
+        // Create Maps
+        mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+    }
+
+    private fun getDataMaps() {
+        val docMaps = firebaseDb.collection("Maps")
+            .document("ZlzjttvSz2o9MIK9W6kl")
+            .collection("marker")
+            .document("sIng06RlDbGjSjbJpXwm")
+        docMaps.addSnapshotListener { value, error ->
+            Log.d("Hasil", "${value?.getString("status")} - $error")
+
+            when(value?.getString("status")) {
+                "marker" -> {
+                    val geoPoint = value.getGeoPoint("marker")
+                    mapFragment?.getMapAsync {
+                        this.googleMap = it
+                        this.googleMap.clear()
+
+                        geoPoint?.let {
+                            mapsMarkers(
+                                lat = it.latitude,
+                                lng = it.longitude
+                            )
+                        }
+                    }
+                }
+
+                "destination" -> {
+                    mapFragment?.getMapAsync {
+                        this.googleMap = it
+                        this.googleMap.clear()
+
+                        val maps = value.get("direction") as Map<Any, Any>
+
+                        val origin = maps["origin"] as GeoPoint
+                        val destination = maps["destination"] as GeoPoint
+
+                        mapsRoutesDirection(
+                            originLat = origin.latitude,
+                            originLong = origin.longitude,
+                            destinationLat = destination.latitude,
+                            destinationLong = destination.longitude
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -284,8 +318,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     }
 
     private fun mapsMarkers(
-        lat: Double = -6.525121364593061,
-        lng: Double = 107.03854839255234,
+        lat: Double,
+        lng: Double,
         title: String = "IDN Boarding School"
     ) {
         val idnBoardingSchool = LatLng(lat, lng)
@@ -302,11 +336,11 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         this.googleMap.animateCamera(cameraUpdate)
     }
 
-    private fun mapsRoutesDirection() {
+    private fun mapsRoutesDirection(originLat: Double, originLong: Double, destinationLat: Double, destinationLong: Double) {
         // Get Location
         val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
-        val origin = geocoder.getFromLocation(-6.525111, 107.038441, 1)
-        val destination = geocoder.getFromLocation(-6.523938, 107.040029, 1)
+        val origin = geocoder.getFromLocation(originLat, originLong, 1)
+        val destination = geocoder.getFromLocation(destinationLat, destinationLong, 1)
         Log.d("Tes", "Tes ${origin[0].getAddressLine(0)} - ${destination[0].getAddressLine(0)}")
 
         viewModel.getDirectionMaps(
