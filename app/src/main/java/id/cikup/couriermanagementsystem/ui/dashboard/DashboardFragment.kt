@@ -54,13 +54,17 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
 
-    companion object{
+    companion object {
         var DOCX: Int = 1
         var AUDIO: Int = 2
         var VIDEO: Int = 3
         var IMAGE_GALLERY: Int = 4
         var CAMERA_DASHBOARD: Int = 5
-        var GALLERY_DASHBOARD:Int = 6
+        var GALLERY_DASHBOARD: Int = 6
+
+
+        const val POLYGON_STROKE_WIDTH_PX = 8
+
     }
 
     private val PermissionsRequestCode = 123
@@ -96,7 +100,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         )
         managePermissions = ManagePermissions(requireContext(), list, PermissionsRequestCode)
 
-        storageRef = FirebaseStorage.getInstance().getReference("Uploads")
+        mStorage = FirebaseStorage.getInstance().getReference("Uploads")
 
 
         kirimChatDasboardFragmentIV.setOnClickListener(this)
@@ -112,9 +116,9 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
         getMessage()
 
-        if (uriPilihFoto != null){
+        if (uriPilihFoto != null) {
             pilihFotoDashboardeFragmentBTN.setText("Upload")
-        }else{
+        } else {
             pilihFotoDashboardeFragmentBTN.setText("Pilih Foto")
 
         }
@@ -134,7 +138,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         docMaps.addSnapshotListener { value, error ->
             Log.d("Hasil", "${value?.getString("status")} - $error")
 
-            when(value?.getString("status")) {
+            when (value?.getString("status")) {
                 "marker" -> {
                     val geoPoint = value.getGeoPoint("marker")
                     mapFragment?.getMapAsync {
@@ -248,11 +252,11 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                         Utils.INSTANCE.showAttachmentChooser(this)
                     }
             }
-            R.id.pilihFotoDashboardeFragmentBTN ->{
-                if (uriPilihFoto != null){
+            R.id.pilihFotoDashboardeFragmentBTN -> {
+                if (uriPilihFoto != null) {
                     Toast.makeText(context, "Silahkan pilih foto.", Toast.LENGTH_LONG).show()
 
-                }else{
+                } else {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                         if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
                             managePermissions.showAlert()
@@ -315,14 +319,14 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     uploadFile()
 
                 }
-                CAMERA_DASHBOARD ->{
-                        file = Utils.INSTANCE.file
-                        uriPilihFoto = Utils.INSTANCE.filePath!!
-                        mCurrentPhotoPath = Utils.INSTANCE.mCurrentPhotoPath
-                        setPic()
+                CAMERA_DASHBOARD -> {
+                    file = Utils.INSTANCE.file
+                    uriPilihFoto = Utils.INSTANCE.filePath!!
+                    mCurrentPhotoPath = Utils.INSTANCE.mCurrentPhotoPath
+                    setPic()
 
                 }
-                GALLERY_DASHBOARD ->{
+                GALLERY_DASHBOARD -> {
                     if (data != null) {
                         file = Utils.INSTANCE.getBitmapFile(data, this)
                         uriPilihFoto = data.data
@@ -368,7 +372,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     fun uploadFile() {
         val ref = uri.lastPathSegment?.let {
-            storageRef.child(it)
+            mStorage.child(it)
         }
         val uploadTask = ref?.putFile(uri)
         uploadTask?.addOnSuccessListener {
@@ -394,7 +398,11 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     } else {
                         // Handle failures
                         // ...
-                        Toast.makeText(requireContext(), "Failed to get url file", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            requireContext(),
+                            "Failed to get url file",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                     }
                 }
@@ -518,15 +526,80 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         } catch (e: IOException) {
             Log.e("TAG", "galleryAddPic: error IO = ${e.message}")
         }
+
+
+    }
+
+
+    private fun mapsMarkers(
+        lat: Double,
+        lng: Double,
+        title: String = "IDN Boarding School"
+    ) {
+        val idnBoardingSchool = LatLng(lat, lng)
+        this.googleMap.addMarker(
+            MarkerOptions()
+                .position(idnBoardingSchool)
+                .title(title)
+        )
+        this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        // initial camera
+        val cameraPosition = CameraPosition.builder().zoom(15.0f)
+            .target(idnBoardingSchool)
+        val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
+        this.googleMap.animateCamera(cameraUpdate)
+    }
+
+    private fun mapsRoutesDirection(originLat: Double, originLong: Double, destinationLat: Double, destinationLong: Double) {
+        // Get Location
+        val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
+        val origin = geocoder.getFromLocation(originLat, originLong, 1)
+        val destination = geocoder.getFromLocation(destinationLat, destinationLong, 1)
+        Log.d("Tes", "Tes ${origin[0].getAddressLine(0)} - ${destination[0].getAddressLine(0)}")
+
+        viewModel.getDirectionMaps(
+            origin = origin[0].getAddressLine(0),
+            destination = destination[0].getAddressLine(0),
+            key = getString(R.string.google_maps_key)
+        )
+    }
+
+    // Draw polyline on map
+    private fun drawPolyLineOnMap(router: String, origin: LatLng, destination: LatLng) {
+        val polyOptions = PolylineOptions()
+        polyOptions.color(Color.BLUE)
+        polyOptions.width(8f)
+        polyOptions.addAll(PolyUtil.decode(router))
+        googleMap.clear()
+        googleMap.addPolyline(polyOptions)
+        googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+
+        //BOUND_PADDING is an int to specify padding of bound.. try 100.
+        val bounds: LatLngBounds = LatLngBounds.Builder()
+            .include(origin)
+            .include(destination)
+            .build()
+
+        // Gets screen size
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+        val padding = width * 0.20
+        val location = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding.toInt())
+        googleMap.animateCamera(location)
+        googleMap.addMarker(MarkerOptions().position(origin))
+        googleMap.addMarker(MarkerOptions().position(destination))
+//        googleMap.isTrafficEnabled = true
+    }
+
     private fun mapsAreas() {
         val polygon1 = googleMap.addPolygon(
             PolygonOptions()
-            .clickable(true)
-            .add(
-                LatLng(-27.457, 153.040),
-                LatLng(-33.852, 151.211),
-                LatLng(-37.813, 144.962),
-                LatLng(-34.928, 138.599)))
+                .clickable(true)
+                .add(
+                    LatLng(-27.457, 153.040),
+                    LatLng(-33.852, 151.211),
+                    LatLng(-37.813, 144.962),
+                    LatLng(-34.928, 138.599)))
 
         polygon1.tag = "A"
         polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()
