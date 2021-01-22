@@ -6,6 +6,8 @@ import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.location.Geocoder
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -22,18 +24,27 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.google.maps.android.PolyUtil
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.Message
 import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
-import kotlinx.android.synthetic.main.custom_dialog_attachment.*
 import kotlinx.android.synthetic.main.fragment_dashboard.*
+import org.koin.android.viewmodel.ext.android.viewModel
+import java.util.*
+
 import kotlinx.android.synthetic.main.fragment_reimburse.*
 import java.io.*
 
@@ -43,7 +54,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
 
-    companion object {
+    companion object{
         var DOCX: Int = 1
         var AUDIO: Int = 2
         var VIDEO: Int = 3
@@ -57,8 +68,14 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
 
     lateinit var uri: Uri
-    lateinit var storageRef: StorageReference
+    lateinit var mStorage: StorageReference
+    private lateinit var googleMap: GoogleMap
+    private var routes: String? = null
 
+    private val viewModel by viewModel<DashboardVM>()
+
+    // Maps
+    private var mapFragment: SupportMapFragment? = null
     var uriPilihFoto: Uri? = null
     lateinit var mCurrentPhotoPath: String
     var file: File? = null
@@ -101,8 +118,90 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
             pilihFotoDashboardeFragmentBTN.setText("Pilih Foto")
 
         }
+
+        // Data Maps
+        getDataMaps()
+
+        // Create Maps
+        mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
     }
 
+    private fun getDataMaps() {
+        val docMaps = firebaseDb.collection("Maps")
+            .document("ZlzjttvSz2o9MIK9W6kl")
+            .collection("marker")
+            .document("sIng06RlDbGjSjbJpXwm")
+        docMaps.addSnapshotListener { value, error ->
+            Log.d("Hasil", "${value?.getString("status")} - $error")
+
+            when(value?.getString("status")) {
+                "marker" -> {
+                    val geoPoint = value.getGeoPoint("marker")
+                    mapFragment?.getMapAsync {
+                        this.googleMap = it
+                        this.googleMap.clear()
+
+                        geoPoint?.let {
+                            mapsMarkers(
+                                lat = it.latitude,
+                                lng = it.longitude
+                            )
+                        }
+                    }
+                }
+
+                "destination" -> {
+                    mapFragment?.getMapAsync {
+                        this.googleMap = it
+                        this.googleMap.clear()
+
+                        val maps = value.get("direction") as Map<Any, Any>
+
+                        val origin = maps["origin"] as GeoPoint
+                        val destination = maps["destination"] as GeoPoint
+
+                        mapsRoutesDirection(
+                            originLat = origin.latitude,
+                            originLong = origin.longitude,
+                            destinationLat = destination.latitude,
+                            destinationLong = destination.longitude
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        with(viewModel) {
+            success.observe(viewLifecycleOwner, {
+                routes = it.routes?.get(0)?.overviewPolyline?.points
+
+                val latStart = it.routes?.get(0)?.legs?.get(0)?.startLocation?.lat
+                val lngStart = it.routes?.get(0)?.legs?.get(0)?.startLocation?.lng
+
+                val latEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lat
+                val lngEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lng
+                drawPolyLineOnMap(
+                    router = routes.toString(),
+                    origin = LatLng(
+                        latStart.toString().toDouble(),
+                        lngStart.toString().toDouble()
+                    ),
+                    destination = LatLng(
+                        latEnd.toString().toDouble(),
+                        lngEnd.toString().toDouble()
+                    )
+                )
+            })
+
+            errorMessage.observe(viewLifecycleOwner, {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            })
+        }
+    }
 
     override fun onBackPressed() {
         this.requireActivity().moveTaskToBack(true)
@@ -419,5 +518,25 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         } catch (e: IOException) {
             Log.e("TAG", "galleryAddPic: error IO = ${e.message}")
         }
+    private fun mapsAreas() {
+        val polygon1 = googleMap.addPolygon(
+            PolygonOptions()
+            .clickable(true)
+            .add(
+                LatLng(-27.457, 153.040),
+                LatLng(-33.852, 151.211),
+                LatLng(-37.813, 144.962),
+                LatLng(-34.928, 138.599)))
+
+        polygon1.tag = "A"
+        polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()
+
+
+        // Position the map's camera near Alice Springs in the center of Australia,
+        // and set the zoom factor so most of Australia shows on the screen.
+
+        // Position the map's camera near Alice Springs in the center of Australia,
+        // and set the zoom factor so most of Australia shows on the screen.
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(-23.684, 133.903), 2f))
     }
 }

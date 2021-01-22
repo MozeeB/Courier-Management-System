@@ -19,7 +19,7 @@
     <string name="profile">Profile</string>
     <string name="maps">Maps</string>
 
-    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDg_qHJ1TjR6uUnUcCPICo4V1SHuSGMyrA</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAeZRzC7rCyNFLxDzqhfaZvbWybyQmvRIg</string>
     <string name="forgot_username">Forgot Username?</string>
     <string name="sign_in">Sign In</string>
     <string name="don_t_have_account">Don\'t Have Account?</string>
