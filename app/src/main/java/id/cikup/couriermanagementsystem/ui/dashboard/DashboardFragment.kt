@@ -68,6 +68,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     private var mapFragment: SupportMapFragment? = null
     private var titleOrigin: String? = ""
     private var titleDestination: String? = ""
+    // Jarak Antar 2 Titik
+    private var distances: Double? = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -180,6 +182,14 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     titleOrigin = titleOrigin.toString(),
                     titleDestination = titleDestination.toString()
                 )
+
+                // Set Jarak
+                val distence = it.routes?.get(0)?.legs?.get(0)?.distance?.value?.toDouble()
+                // Convert To KM
+                distances = distence?.let {
+                    it / 1000
+                }
+                jumlahJarakDashboardFragmentTV.text = it.routes?.get(0)?.legs?.get(0)?.distance?.text
             })
 
             errorMessage.observe(viewLifecycleOwner, {
