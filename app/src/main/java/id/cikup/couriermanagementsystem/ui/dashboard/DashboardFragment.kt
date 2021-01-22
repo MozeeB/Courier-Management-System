@@ -5,7 +5,6 @@ import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.location.Geocoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -21,9 +20,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.textview.MaterialTextView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
@@ -67,6 +66,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     // Maps
     private var mapFragment: SupportMapFragment? = null
+    private var titleOrigin: String? = ""
+    private var titleDestination: String? = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -111,19 +112,20 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         docMaps.addSnapshotListener { value, error ->
             Log.d("Hasil", "${value?.getString("status")} - $error")
 
-            when(value?.getString("status")) {
+            when (value?.getString("status")) {
                 "marker" -> {
-                    val geoPoint = value.getGeoPoint("marker")
+                    val maps = value.get("marker") as Map<Any, Any>
+                    val origin = maps["origin"] as GeoPoint
+                    val title = maps["title"] as String
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
 
-                        geoPoint?.let {
-                            mapsMarkers(
-                                lat = it.latitude,
-                                lng = it.longitude
-                            )
-                        }
+                        mapsMarkers(
+                            lat = origin.latitude,
+                            lng = origin.longitude,
+                            title = title
+                        )
                     }
                 }
 
@@ -136,6 +138,9 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
                         val origin = maps["origin"] as GeoPoint
                         val destination = maps["destination"] as GeoPoint
+
+                        titleOrigin = maps["title_origin"] as String
+                        titleDestination = maps["title_destination"] as String
 
                         mapsRoutesDirection(
                             originLat = origin.latitude,
@@ -154,6 +159,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
         with(viewModel) {
             success.observe(viewLifecycleOwner, {
+                Log.d("Maps", "$it")
                 routes = it.routes?.get(0)?.overviewPolyline?.points
 
                 val latStart = it.routes?.get(0)?.legs?.get(0)?.startLocation?.lat
@@ -170,7 +176,9 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     destination = LatLng(
                         latEnd.toString().toDouble(),
                         lngEnd.toString().toDouble()
-                    )
+                    ),
+                    titleOrigin = titleOrigin.toString(),
+                    titleDestination = titleDestination.toString()
                 )
             })
 
@@ -289,25 +297,24 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     fun getMessage() {
         firebaseDb.collection("Chats")
-                .document("2")
-                .collection("Message").orderBy("messageTime")
-                .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                    if (firebaseFirestoreException != null) {
-                        firebaseFirestoreException.printStackTrace()
-                        return@addSnapshotListener
-                    } else {
-                        if (querySnapshot != null) {
-                            for (change in querySnapshot.documentChanges) {
-                                when (change.type) {
-                                    DocumentChange.Type.ADDED -> {
-                                        val message = change.document.toObject(Message::class.java)
-                                        if (message != null) {
-                                            conversationAdapter.addMessage(message)
-                                            chatDashboardFragmentRV.post {
-                                                chatDashboardFragmentRV.smoothScrollToPosition(
-                                                    conversationAdapter.itemCount - 1
-                                                )
-                                            }
+            .document("2")
+            .collection("Message").orderBy("messageTime")
+            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+                if (firebaseFirestoreException != null) {
+                    firebaseFirestoreException.printStackTrace()
+                    return@addSnapshotListener
+                } else {
+                    if (querySnapshot != null) {
+                        for (change in querySnapshot.documentChanges) {
+                            when (change.type) {
+                                DocumentChange.Type.ADDED -> {
+                                    val message = change.document.toObject(Message::class.java)
+                                    if (message != null) {
+                                        conversationAdapter.addMessage(message)
+                                        chatDashboardFragmentRV.post {
+                                            chatDashboardFragmentRV.smoothScrollToPosition(
+                                                conversationAdapter.itemCount - 1
+                                            )
                                         }
                                     }
                                 }
@@ -315,12 +322,13 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                         }
                     }
                 }
+            }
     }
 
     private fun mapsMarkers(
         lat: Double,
         lng: Double,
-        title: String = "IDN Boarding School"
+        title: String
     ) {
         val idnBoardingSchool = LatLng(lat, lng)
         this.googleMap.addMarker(
@@ -328,30 +336,49 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 .position(idnBoardingSchool)
                 .title(title)
         )
-        this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        this.googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+        // Info Marker
+        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(p0: Marker?): View? {
+                return null
+            }
+
+            override fun getInfoContents(p0: Marker?): View {
+                val view = layoutInflater.inflate(R.layout.layout_marker, null)
+                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
+                tviNamePopup.text = p0?.title.toString()
+                return view
+            }
+        })
         // initial camera
         val cameraPosition = CameraPosition.builder().zoom(15.0f)
             .target(idnBoardingSchool)
         val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
         this.googleMap.animateCamera(cameraUpdate)
+        this.googleMap.isTrafficEnabled = true
     }
 
-    private fun mapsRoutesDirection(originLat: Double, originLong: Double, destinationLat: Double, destinationLong: Double) {
-        // Get Location
-        val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
-        val origin = geocoder.getFromLocation(originLat, originLong, 1)
-        val destination = geocoder.getFromLocation(destinationLat, destinationLong, 1)
-        Log.d("Tes", "Tes ${origin[0].getAddressLine(0)} - ${destination[0].getAddressLine(0)}")
-
+    private fun mapsRoutesDirection(
+        originLat: Double,
+        originLong: Double,
+        destinationLat: Double,
+        destinationLong: Double
+    ) {
         viewModel.getDirectionMaps(
-            origin = origin[0].getAddressLine(0),
-            destination = destination[0].getAddressLine(0),
+            origin = "$originLat,$originLong",
+            destination = "$destinationLat,$destinationLong",
             key = getString(R.string.google_maps_key)
         )
     }
 
     // Draw polyline on map
-    private fun drawPolyLineOnMap(router: String, origin: LatLng, destination: LatLng) {
+    private fun drawPolyLineOnMap(
+        router: String,
+        origin: LatLng,
+        destination: LatLng,
+        titleOrigin: String,
+        titleDestination: String
+    ) {
         val polyOptions = PolylineOptions()
         polyOptions.color(Color.BLUE)
         polyOptions.width(8f)
@@ -371,21 +398,36 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         val height = resources.displayMetrics.heightPixels
         val padding = width * 0.20
         val location = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding.toInt())
+        // Info Marker
+        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(p0: Marker?): View? {
+                return null
+            }
+
+            override fun getInfoContents(p0: Marker?): View {
+                val view = layoutInflater.inflate(R.layout.layout_marker, null)
+                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
+                tviNamePopup.text = p0?.title.toString()
+                return view
+            }
+        })
         googleMap.animateCamera(location)
-        googleMap.addMarker(MarkerOptions().position(origin))
-        googleMap.addMarker(MarkerOptions().position(destination))
-//        googleMap.isTrafficEnabled = true
+        googleMap.addMarker(MarkerOptions().position(origin).title(titleOrigin))
+        googleMap.addMarker(MarkerOptions().position(destination).title(titleDestination))
+        googleMap.isTrafficEnabled = true
     }
 
     private fun mapsAreas() {
         val polygon1 = googleMap.addPolygon(
             PolygonOptions()
-            .clickable(true)
-            .add(
-                LatLng(-27.457, 153.040),
-                LatLng(-33.852, 151.211),
-                LatLng(-37.813, 144.962),
-                LatLng(-34.928, 138.599)))
+                .clickable(true)
+                .add(
+                    LatLng(-27.457, 153.040),
+                    LatLng(-33.852, 151.211),
+                    LatLng(-37.813, 144.962),
+                    LatLng(-34.928, 138.599)
+                )
+        )
 
         polygon1.tag = "A"
         polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()
