@@ -346,7 +346,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 .position(idnBoardingSchool)
                 .title(title)
         )
-        this.googleMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+        this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
         // Info Marker
         this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(p0: Marker?): View? {
