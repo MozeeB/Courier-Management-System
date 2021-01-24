@@ -1,8 +1,7 @@
-package id.cikup.couriermanagementsystem.ui.dashboard
+package id.cikup.couriermanagementsystem.ui.client.dashboard
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -26,7 +25,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
@@ -36,16 +34,20 @@ import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.maps.android.PolyUtil
+import com.orhanobut.hawk.Hawk
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.Message
+import id.cikup.couriermanagementsystem.data.model.UsersModel
 import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
 import kotlinx.android.synthetic.main.fragment_dashboard.*
+import kotlinx.android.synthetic.main.fragment_login.*
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.util.*
 
 import kotlinx.android.synthetic.main.fragment_reimburse.*
+import kotlinx.android.synthetic.main.fragment_reimburse.progressBarHolderLoginCL
 import java.io.*
 
 class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener {
@@ -84,6 +86,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     lateinit var mCurrentPhotoPath: String
     var file: File? = null
 
+    var deliver_id: String? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -114,7 +118,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
             adapter = conversationAdapter
         }
 
-        getMessage()
+        getUser()
+
 
         if (uriPilihFoto != null) {
             pilihFotoDashboardeFragmentBTN.setText("Upload")
@@ -128,6 +133,122 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
         // Create Maps
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+
+
+        deliver_id = Hawk.get("role", "")
+        if (deliver_id != null){
+        }
+
+        getMessage()
+
+    }
+
+    override fun onClick(p0: View?) {
+        when (p0?.id) {
+            R.id.kirimChatDasboardFragmentIV -> {
+                if (!chatDashboardFragmentEDT.text.isNullOrEmpty()) {
+                    val message = Message(
+                        userId,
+                        chatDashboardFragmentEDT.text.toString(),
+                        System.currentTimeMillis()
+                    )
+                    firebaseDb.collection("Delivering")
+                        .document("313drUbMYZrPEMHcdKID")
+                        .collection("message")
+                        .document()
+                        .set(message)
+                    chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
+
+                }
+            }
+            R.id.logOut -> {
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle("Log Out")
+                builder.setMessage("Apakah anda yakin ingin log out?")
+                builder.setPositiveButton("Ya") { dialog, which ->
+                    FirebaseAuth.getInstance().signOut()
+                    findNavController().navigate(R.id.action_navigation_dashboard_to_mainActivity)
+                }
+                builder.setNegativeButton("Tidak") { dialog, which ->
+
+                }
+
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+
+            }
+            R.id.attachmentDashboardFragmentIV -> {
+                if (deliver_id != null){
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                        if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
+                            managePermissions.showAlert()
+                        } else {
+                            Utils.INSTANCE.showAttachmentChooser(this)
+                        }
+                }
+
+            }
+            R.id.pilihFotoDashboardeFragmentBTN -> {
+                if (uriPilihFoto != null) {
+                    Toast.makeText(context, "Silahkan pilih foto.", Toast.LENGTH_LONG).show()
+
+                } else {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                        if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
+                            managePermissions.showAlert()
+                        } else {
+                            Utils.INSTANCE.showImageDashboardChooser(this)
+                        }
+                }
+
+            }
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    fun getUser(){
+        val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
+        firebaseDb.collection("Users")
+            .document(currentUserID)
+            .get()
+            .addOnSuccessListener { documentSnapshot ->
+                val user = documentSnapshot.toObject(UsersModel::class.java)
+                nameDashboardFragmentTV.text = "${user?.first_name} ${user?.last_name}"
+
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "Failed To Load", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    fun getMessage() {
+        firebaseDb.collection("Delivering")
+            .document("313drUbMYZrPEMHcdKID")
+            .collection("message").orderBy("time")
+            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+                if (firebaseFirestoreException != null) {
+                    firebaseFirestoreException.printStackTrace()
+                    return@addSnapshotListener
+                } else {
+                    if (querySnapshot != null) {
+                        for (change in querySnapshot.documentChanges) {
+                            when (change.type) {
+                                DocumentChange.Type.ADDED -> {
+                                    val message = change.document.toObject(Message::class.java)
+                                    if (message != null) {
+                                        conversationAdapter.addMessage(message)
+                                        chatDashboardFragmentRV.post {
+                                            chatDashboardFragmentRV.smoothScrollToPosition(
+                                                conversationAdapter.itemCount - 1
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
     }
 
     private fun getDataMaps() {
@@ -211,63 +332,6 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         this.requireActivity().moveTaskToBack(true)
     }
 
-    override fun onClick(p0: View?) {
-        when (p0?.id) {
-            R.id.kirimChatDasboardFragmentIV -> {
-                if (!chatDashboardFragmentEDT.text.isNullOrEmpty()) {
-                    val message = Message(
-                        userId,
-                        chatDashboardFragmentEDT.text.toString(),
-                        System.currentTimeMillis()
-                    )
-                    firebaseDb.collection("Chats")
-                        .document("3")
-                        .collection("Message")
-                        .document()
-                        .set(message)
-                    chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
-                }
-            }
-            R.id.logOut -> {
-                val builder = AlertDialog.Builder(requireContext())
-                builder.setTitle("Log Out")
-                builder.setMessage("Apakah anda yakin ingin log out?")
-                builder.setPositiveButton("Ya") { dialog, which ->
-                    FirebaseAuth.getInstance().signOut()
-                    findNavController().navigate(R.id.action_navigation_dashboard_to_mainActivity)
-                }
-                builder.setNegativeButton("Tidak") { dialog, which ->
-
-                }
-
-                val dialog: AlertDialog = builder.create()
-                dialog.show()
-
-            }
-            R.id.attachmentDashboardFragmentIV -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                    if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
-                        managePermissions.showAlert()
-                    } else {
-                        Utils.INSTANCE.showAttachmentChooser(this)
-                    }
-            }
-            R.id.pilihFotoDashboardeFragmentBTN -> {
-                if (uriPilihFoto != null) {
-                    Toast.makeText(context, "Silahkan pilih foto.", Toast.LENGTH_LONG).show()
-
-                } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                        if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
-                            managePermissions.showAlert()
-                        } else {
-                            Utils.INSTANCE.showImageDashboardChooser(this)
-                        }
-                }
-
-            }
-        }
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -339,37 +403,6 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     }
 
 
-    fun getMessage() {
-        firebaseDb.collection("Chats")
-            .document("3")
-            .collection("Message").orderBy("messageTime")
-            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                if (firebaseFirestoreException != null) {
-                    firebaseFirestoreException.printStackTrace()
-                    return@addSnapshotListener
-                } else {
-                    if (querySnapshot != null) {
-                        for (change in querySnapshot.documentChanges) {
-                            when (change.type) {
-                                DocumentChange.Type.ADDED -> {
-                                    val message = change.document.toObject(Message::class.java)
-                                    if (message != null) {
-                                        conversationAdapter.addMessage(message)
-                                        chatDashboardFragmentRV.post {
-                                            chatDashboardFragmentRV.smoothScrollToPosition(
-                                                conversationAdapter.itemCount - 1
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-    }
-
     fun uploadFile() {
         val ref = uri.lastPathSegment?.let {
             mStorage.child(it)
@@ -390,9 +423,9 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                             downloadUri.toString(),
                             System.currentTimeMillis()
                         )
-                        firebaseDb.collection("Chats")
-                            .document("2")
-                            .collection("Message")
+                        firebaseDb.collection("Delivering")
+                            .document("313drUbMYZrPEMHcdKID")
+                            .collection("message")
                             .document()
                             .set(message)
                     } else {
@@ -550,7 +583,12 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         this.googleMap.animateCamera(cameraUpdate)
     }
 
-    private fun mapsRoutesDirection(originLat: Double, originLong: Double, destinationLat: Double, destinationLong: Double) {
+    private fun mapsRoutesDirection(
+        originLat: Double,
+        originLong: Double,
+        destinationLat: Double,
+        destinationLong: Double
+    ) {
         // Get Location
         val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
         val origin = geocoder.getFromLocation(originLat, originLong, 1)
@@ -599,7 +637,9 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     LatLng(-27.457, 153.040),
                     LatLng(-33.852, 151.211),
                     LatLng(-37.813, 144.962),
-                    LatLng(-34.928, 138.599)))
+                    LatLng(-34.928, 138.599)
+                )
+        )
 
         polygon1.tag = "A"
         polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()

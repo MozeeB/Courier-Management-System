@@ -197,11 +197,12 @@ class RegisterFragment : Fragment(), View.OnClickListener {
                     progressBarHolderLoginCL.visibility = View.GONE
                     Toast.makeText(context, "Register Success", Toast.LENGTH_LONG).show()
                     findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
-
+                    auth.signOut()
                 }
                 .addOnFailureListener { e ->
                     progressBarHolderLoginCL.visibility = View.GONE
                     Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+                    auth.signOut()
                 }
 
 

@@ -29,6 +29,9 @@
         <action
             android:id="@+id/action_loginFragment_to_faqFragment"
             app:destination="@id/faqFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_courierMainActivity"
+            app:destination="@id/courierMainActivity" />
     </fragment>
     <activity
         android:id="@+id/homeActivity"
@@ -46,9 +49,6 @@
             app:exitAnim="@anim/right_out"
             app:popUpTo="@id/registerFragment"
             app:popUpToInclusive="true" />
-        <action
-            android:id="@+id/action_registerFragment_to_homeActivity"
-            app:destination="@id/homeActivity" />
     </fragment>
     <fragment
         android:id="@+id/forgetPasswordFragment"
@@ -73,4 +73,9 @@
         android:name="id.cikup.couriermanagementsystem.ui.main.faq.FaqFragment"
         android:label="fragment_faq"
         tools:layout="@layout/fragment_faq" />
+    <activity
+        android:id="@+id/courierMainActivity"
+        android:name="id.cikup.couriermanagementsystem.ui.courier.dashboard.CourierMainActivity"
+        android:label="fragment_courier_dashboard"
+        tools:layout="@layout/fragment_courier_dashboard" />
 </navigation>

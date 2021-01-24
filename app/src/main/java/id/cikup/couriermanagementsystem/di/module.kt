@@ -1,7 +1,7 @@
 package id.cikup.couriermanagementsystem.di
 
 import id.cikup.couriermanagementsystem.data.service.MapsService
-import id.cikup.couriermanagementsystem.ui.dashboard.DashboardVM
+import id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardVM
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.viewmodel.dsl.viewModel

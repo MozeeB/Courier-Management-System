@@ -1,4 +1,4 @@
-package id.cikup.couriermanagementsystem.ui.dashboard
+package id.cikup.couriermanagementsystem.ui.client.dashboard
 
 import android.view.LayoutInflater
 import android.view.View
@@ -32,10 +32,11 @@ class ConversationAdapter(private val messages: ArrayList<Message>, val userId: 
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (messages[position].sentBy.equals(userId)){
-            return MESSAGE_CURRENT_USER
+        return if (messages[position].sender.equals(userId)){
+            MESSAGE_CURRENT_USER
         } else {
-            return MESSAGE_OTHER_USER }
+            MESSAGE_OTHER_USER
+        }
     }
 
     fun addMessage(message: Message){

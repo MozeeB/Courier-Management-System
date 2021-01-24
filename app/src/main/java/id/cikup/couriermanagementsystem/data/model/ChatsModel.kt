@@ -1,7 +1,7 @@
 package id.cikup.couriermanagementsystem.data.model
 
 data class Message(
-        val sentBy: String? = "",
+        val sender: String? = "",
         val message: String? = "",
-        val messageTime: Long? = 0
+        val time: Long? = 0
 )
