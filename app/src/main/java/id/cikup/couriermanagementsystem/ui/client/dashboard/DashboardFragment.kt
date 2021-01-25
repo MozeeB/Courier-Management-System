@@ -87,6 +87,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     var uriPilihFoto: Uri? = null
     lateinit var mCurrentPhotoPath: String
     var file: File? = null
+
+
     private var titleOrigin: String? = ""
     private var titleDestination: String? = ""
     // Jarak Antar 2 Titik
