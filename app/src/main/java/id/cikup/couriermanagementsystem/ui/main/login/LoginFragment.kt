@@ -13,8 +13,10 @@ import com.github.nkzawa.emitter.Emitter
 import com.github.nkzawa.socketio.client.Socket
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.orhanobut.hawk.Hawk
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.BannerModel
+import id.cikup.couriermanagementsystem.data.model.UsersModel
 import id.cikup.couriermanagementsystem.helper.MongoConnetion
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import kotlinx.android.synthetic.main.fragment_login.*
@@ -154,8 +156,37 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
 //                socket?.emit("login", email, password)
                 auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
                     if (it.isSuccessful){
-                        progressBarHolderLoginCL.visibility = View.GONE
-                        findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
+                        val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
+                        firebaseDb.collection("Users")
+                                .document(currentUserID)
+                                .get()
+                                .addOnSuccessListener { documentSnapshot ->
+                                    val user = documentSnapshot.toObject(UsersModel::class.java)
+                                    when (user?.role) {
+                                        "client" -> {
+                                            progressBarHolderLoginCL.visibility = View.GONE
+                                            findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
+                                            Hawk.put("role", "client")
+
+                                        }
+                                        "courier" -> {
+                                            progressBarHolderLoginCL.visibility = View.GONE
+                                            findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
+                                            Hawk.put("role", "courier")
+
+                                        }
+                                        else -> {
+                                            auth.signOut()
+                                            Toast.makeText(context, "Your Account Haven't Accept By Admin", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "Failed To Login", Toast.LENGTH_SHORT).show()
+                                    auth.signOut()
+                                }
+
+
                     }else{
                         progressBarHolderLoginCL.visibility = View.GONE
                         auth.signOut()
@@ -168,8 +199,35 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
     }
     override fun onStart() {
         if (auth.currentUser != null){
-            //to home
-            findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
+            progressBarHolderLoginCL.visibility = View.VISIBLE
+            val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
+            firebaseDb.collection("Users")
+                .document(currentUserID)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    val user = documentSnapshot.toObject(UsersModel::class.java)
+                    when (user?.role) {
+                        "client" -> {
+                            progressBarHolderLoginCL.visibility = View.GONE
+                            findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
+                        }
+                        "courier" -> {
+                            progressBarHolderLoginCL.visibility = View.GONE
+                            findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
+                        }
+                        else -> {
+                            auth.signOut()
+                            Toast.makeText(context, "Your Account Haven't Accept By Admin", Toast.LENGTH_SHORT).show()
+                            progressBarHolderLoginCL.visibility = View.GONE
+
+                        }
+                    }
+                }
+                .addOnFailureListener {
+                    progressBarHolderLoginCL.visibility = View.GONE
+                    Toast.makeText(context, "Failed To Login", Toast.LENGTH_SHORT).show()
+                    auth.signOut()
+                }
         }
         super.onStart()
     }

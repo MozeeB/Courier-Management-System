@@ -2,18 +2,18 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_dashboard">
+    android:id="@+id/courier_navigation"
+    app:startDestination="@id/navigation_dashboard">
 
     <fragment
         android:id="@+id/navigation_dashboard"
-        android:name="id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" >
+        android:name="id.cikup.couriermanagementsystem.ui.courier.dashboard.CourierDashboardFragment"
+        android:label="CourierDashboardFragment" >
         <action
-            android:id="@+id/action_navigation_dashboard_to_mainActivity"
+            android:id="@+id/action_courierDashboardFragment_to_mainActivity"
             app:destination="@id/mainActivity" />
     </fragment>
+
 
     <fragment
         android:id="@+id/navigation_tugas"
@@ -21,7 +21,7 @@
         android:label="@string/tugas"
         tools:layout="@layout/fragment_tugas" >
         <action
-            android:id="@+id/action_navigation_tugas_to_navigation_dashboard"
+            android:id="@+id/action_navigation_tugas_to_courierDashboardFragment"
             app:destination="@id/navigation_dashboard" />
     </fragment>
 

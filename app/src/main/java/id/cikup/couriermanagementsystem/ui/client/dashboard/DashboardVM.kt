@@ -1,6 +1,5 @@
-package id.cikup.couriermanagementsystem.ui.dashboard
+package id.cikup.couriermanagementsystem.ui.client.dashboard
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
