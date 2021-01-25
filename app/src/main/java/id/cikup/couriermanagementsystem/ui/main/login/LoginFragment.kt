@@ -166,10 +166,14 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
                                         "client" -> {
                                             progressBarHolderLoginCL.visibility = View.GONE
                                             findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
+                                            Hawk.put("role", "client")
+
                                         }
                                         "courier" -> {
                                             progressBarHolderLoginCL.visibility = View.GONE
                                             findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
+                                            Hawk.put("role", "courier")
+
                                         }
                                         else -> {
                                             auth.signOut()
@@ -195,6 +199,7 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
     }
     override fun onStart() {
         if (auth.currentUser != null){
+            progressBarHolderLoginCL.visibility = View.VISIBLE
             val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
             firebaseDb.collection("Users")
                 .document(currentUserID)
@@ -205,21 +210,21 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
                         "client" -> {
                             progressBarHolderLoginCL.visibility = View.GONE
                             findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
-                            Hawk.put("role", "client")
                         }
                         "courier" -> {
                             progressBarHolderLoginCL.visibility = View.GONE
                             findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
-                            Hawk.put("role", "courier")
-
                         }
                         else -> {
                             auth.signOut()
                             Toast.makeText(context, "Your Account Haven't Accept By Admin", Toast.LENGTH_SHORT).show()
+                            progressBarHolderLoginCL.visibility = View.GONE
+
                         }
                     }
                 }
                 .addOnFailureListener {
+                    progressBarHolderLoginCL.visibility = View.GONE
                     Toast.makeText(context, "Failed To Login", Toast.LENGTH_SHORT).show()
                     auth.signOut()
                 }

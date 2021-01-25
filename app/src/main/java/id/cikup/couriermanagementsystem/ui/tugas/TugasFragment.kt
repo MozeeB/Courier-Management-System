@@ -1,9 +1,11 @@
 package id.cikup.couriermanagementsystem.ui.tugas
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
@@ -11,6 +13,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.TugasModel
+import id.cikup.couriermanagementsystem.data.model.UsersModel
+import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
 import kotlinx.android.synthetic.main.fragment_tugas.*
 
 class TugasFragment : Fragment() {
@@ -35,14 +39,29 @@ class TugasFragment : Fragment() {
 
         setUpRecyclerView()
 
+        getUser()
+
+    }
+
+    @SuppressLint("SetTextI18n")
+    fun getUser(){
+        val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
+        firebaseDb.collection("Users")
+            .document("LTVWUsRbvdOoUujHvmCokeH6uKu2")
+            .get()
+            .addOnSuccessListener { documentSnapshot ->
+                val user = documentSnapshot.toObject(UsersModel::class.java)
+                nameTugasFragmentTV.text = "${user?.first_name} ${user?.last_name}"
+
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "Failed To Load", Toast.LENGTH_SHORT).show()
+            }
     }
 
     fun setUpRecyclerView(){
         val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
-        val query = firebaseDb.collection("Tugas")
-            .document(currentUserID)
-            .collection("tugas")
-
+        val query = firebaseDb.collection("Ordering")
         val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
             .setQuery(query, TugasModel::class.java)
             .build()

@@ -3,31 +3,32 @@ package id.cikup.couriermanagementsystem.data.model
 import com.google.firebase.firestore.GeoPoint
 
 data class TugasModel(
-        val client_id:String = "",
-        val foto_package:String = "",
-        val location : Location,
-        val long:String = "",
-        val name_package:String = "",
-        val order_id:String = "",
-        val quantity:Int = 0,
-        val tall:String = "",
-        val type_package:String = "",
-        val width:Int = 0
+        var client_id:String = "",
+        var foto_package:String = "",
+        var location : Map<String ,Location> = emptyMap(),
+        var long:String = "",
+        var name_package:String = "",
+        var order_id:String = "",
+        var quantity:Int = 0,
+        var tall:String = "",
+        var type_package:String = "",
+        var width:Int = 0,
+        var title:String = ""
 )
 
+
 data class Location(
-        val direction: Direction,
-        val marker:Marker,
-        val status:Boolean = false
+        var direction: List<Direction> = emptyList(),
+        var marker:List<Marker> = emptyList()
 )
 
 data class Direction(
-        val destination:GeoPoint = GeoPoint(0.0, 0.0),
-        val title_destination:String = "",
-        val title_origin:String = ""
+        var destination:GeoPoint = GeoPoint(0.0, 0.0),
+        var title_destination:String = "",
+        var title_origin:String = ""
 )
 
 data class Marker(
-        val origin:GeoPoint = GeoPoint(0.0, 0.0),
-        val title:String = ""
+        var origin:GeoPoint = GeoPoint(0.0, 0.0),
+        var title:String = ""
 )

@@ -92,8 +92,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     var deliver_id: String? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_courier_dashboard, container, false)
@@ -104,7 +104,7 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         super.onActivityCreated(savedInstanceState)
 
         val list = listOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.READ_EXTERNAL_STORAGE
         )
         managePermissions = ManagePermissions(requireContext(), list, PermissionsRequestCode)
 
@@ -151,8 +151,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         // Create Maps
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
 
-        deliver_id = Hawk.get("role", "")
-        if (deliver_id != null){
+        deliver_id = Hawk.get("order_id", "")
+        if (deliver_id?.isNullOrEmpty() == false) {
             getMessage()
         }
 
@@ -163,48 +163,70 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             R.id.kirimChatDasboardFragmentIV -> {
                 if (!chatDashboardFragmentEDT.text.isNullOrEmpty()) {
                     val message = Message(
-                        userId,
-                        chatDashboardFragmentEDT.text.toString(),
-                        System.currentTimeMillis()
+                            userId,
+                            chatDashboardFragmentEDT.text.toString(),
+                            System.currentTimeMillis()
                     )
-                    if (deliver_id != null){
-                    firebaseDb.collection("Delivering")
-                        .document(deliver_id!!)
-                        .collection("message")
-                        .document()
-                        .set(message)
-                    chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
-                    }else{
+                    if (deliver_id != null) {
+                        firebaseDb.collection("Delivering")
+                                .document(deliver_id!!)
+                                .collection("messages")
+                                .document()
+                                .set(message)
+                        chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
+                    } else {
                         Toast.makeText(context, "Anda belum terhubung dengan siapapun", Toast.LENGTH_LONG).show()
                     }
 
                 }
             }
             R.id.logOut -> {
-                val builder = AlertDialog.Builder(requireContext())
-                builder.setTitle("Log Out")
-                builder.setMessage("Apakah anda yakin ingin log out?")
-                builder.setPositiveButton("Ya") { dialog, which ->
-                    FirebaseAuth.getInstance().signOut()
-                    findNavController().navigate(R.id.action_navigation_dashboard_to_mainActivity)
-                }
-                builder.setNegativeButton("Tidak") { dialog, which ->
+                val role = Hawk.get("role", "")
+                if (role == "courier") {
+                    val builder = AlertDialog.Builder(requireContext())
+                    builder.setTitle("Log Out")
+                    builder.setMessage("Apakah anda yakin ingin log out?")
+                    builder.setPositiveButton("Ya") { dialog, which ->
+                        FirebaseAuth.getInstance().signOut()
+                        Hawk.deleteAll()
+                        findNavController().navigate(R.id.action_courierDashboardFragment_to_mainActivity)
+                    }
+                    builder.setNegativeButton("Tidak") { dialog, which ->
+
+                    }
+
+                    val dialog: AlertDialog = builder.create()
+                    dialog.show()
+                } else if (role == "client") {
+                    val builder = AlertDialog.Builder(requireContext())
+                    builder.setTitle("Log Out")
+                    builder.setMessage("Apakah anda yakin ingin log out?")
+                    builder.setPositiveButton("Ya") { dialog, which ->
+                        FirebaseAuth.getInstance().signOut()
+                        Hawk.deleteAll()
+                        findNavController().navigate(R.id.action_navigation_dashboard_to_mainActivity)
+
+                    }
+                    builder.setNegativeButton("Tidak") { dialog, which ->
+
+                    }
+
+                    val dialog: AlertDialog = builder.create()
+                    dialog.show()
 
                 }
 
-                val dialog: AlertDialog = builder.create()
-                dialog.show()
 
             }
             R.id.attachmentDashboardFragmentIV -> {
-                if (deliver_id != null){
+                if (deliver_id != null) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                         if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
                             managePermissions.showAlert()
                         } else {
                             Utils.INSTANCE.showAttachmentChooser(this)
                         }
-                }else{
+                } else {
                     Toast.makeText(context, "Anda belum terhubung dengan siapapun", Toast.LENGTH_LONG).show()
 
                 }
@@ -228,41 +250,42 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     }
 
     @SuppressLint("SetTextI18n")
-    fun getUser(){
+    fun getUser() {
         val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
         firebaseDb.collection("Users")
-            .document(currentUserID)
-            .get()
-            .addOnSuccessListener { documentSnapshot ->
-                val user = documentSnapshot.toObject(UsersModel::class.java)
-                nameDashboardFragmentTV.text = "${user?.first_name} ${user?.last_name}"
+                .document(currentUserID)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    val user = documentSnapshot.toObject(UsersModel::class.java)
+                    nameDashboardFragmentTV.text = "${user?.first_name} ${user?.last_name}"
 
-            }
-            .addOnFailureListener {
-                Toast.makeText(context, "Failed To Load", Toast.LENGTH_SHORT).show()
-            }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(context, "Failed To Load", Toast.LENGTH_SHORT).show()
+                }
     }
 
     fun getMessage() {
         firebaseDb.collection("Delivering")
-            .document(deliver_id!!)
-            .collection("message").orderBy("time")
-            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                if (firebaseFirestoreException != null) {
-                    firebaseFirestoreException.printStackTrace()
-                    return@addSnapshotListener
-                } else {
-                    if (querySnapshot != null) {
-                        for (change in querySnapshot.documentChanges) {
-                            when (change.type) {
-                                DocumentChange.Type.ADDED -> {
-                                    val message = change.document.toObject(Message::class.java)
-                                    if (message != null) {
-                                        conversationAdapter.addMessage(message)
-                                        chatDashboardFragmentRV.post {
-                                            chatDashboardFragmentRV.smoothScrollToPosition(
-                                                conversationAdapter.itemCount - 1
-                                            )
+                .document(deliver_id!!)
+                .collection("messages").orderBy("time")
+                .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+                    if (firebaseFirestoreException != null) {
+                        firebaseFirestoreException.printStackTrace()
+                        return@addSnapshotListener
+                    } else {
+                        if (querySnapshot != null) {
+                            for (change in querySnapshot.documentChanges) {
+                                when (change.type) {
+                                    DocumentChange.Type.ADDED -> {
+                                        val message = change.document.toObject(Message::class.java)
+                                        if (message != null) {
+                                            conversationAdapter.addMessage(message)
+                                            chatDashboardFragmentRV.post {
+                                                chatDashboardFragmentRV.smoothScrollToPosition(
+                                                        conversationAdapter.itemCount - 1
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -270,15 +293,14 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         }
                     }
                 }
-            }
     }
 
 
     private fun getDataMaps() {
         val docMaps = firebaseDb.collection("Maps")
-            .document("ZlzjttvSz2o9MIK9W6kl")
-            .collection("marker")
-            .document("sIng06RlDbGjSjbJpXwm")
+                .document("ZlzjttvSz2o9MIK9W6kl")
+                .collection("marker")
+                .document("sIng06RlDbGjSjbJpXwm")
         docMaps.addSnapshotListener { value, error ->
             Log.d("Hasil", "${value?.getString("status")} - $error")
 
@@ -291,8 +313,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
                         geoPoint?.let {
                             mapsMarkers(
-                                lat = it.latitude,
-                                lng = it.longitude
+                                    lat = it.latitude,
+                                    lng = it.longitude
                             )
                         }
                     }
@@ -309,10 +331,10 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         val destination = maps["destination"] as GeoPoint
 
                         mapsRoutesDirection(
-                            originLat = origin.latitude,
-                            originLong = origin.longitude,
-                            destinationLat = destination.latitude,
-                            destinationLong = destination.longitude
+                                originLat = origin.latitude,
+                                originLong = origin.longitude,
+                                destinationLat = destination.latitude,
+                                destinationLong = destination.longitude
                         )
                     }
                 }
@@ -333,15 +355,15 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 val latEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lat
                 val lngEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lng
                 drawPolyLineOnMap(
-                    router = routes.toString(),
-                    origin = LatLng(
-                        latStart.toString().toDouble(),
-                        lngStart.toString().toDouble()
-                    ),
-                    destination = LatLng(
-                        latEnd.toString().toDouble(),
-                        lngEnd.toString().toDouble()
-                    )
+                        router = routes.toString(),
+                        origin = LatLng(
+                                latStart.toString().toDouble(),
+                                lngStart.toString().toDouble()
+                        ),
+                        destination = LatLng(
+                                latEnd.toString().toDouble(),
+                                lngEnd.toString().toDouble()
+                        )
                 )
             })
 
@@ -357,9 +379,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
     ) {
         when (requestCode) {
             PermissionsRequestCode -> {
@@ -393,9 +415,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 VIDEO -> {
                     uri = data?.data!!
                     Toast.makeText(
-                        requireContext(),
-                        Utils.INSTANCE.filePath.toString(),
-                        Toast.LENGTH_LONG
+                            requireContext(),
+                            Utils.INSTANCE.filePath.toString(),
+                            Toast.LENGTH_LONG
                     ).show()
 
                     uploadFile()
@@ -442,24 +464,24 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                     if (task.isSuccessful) {
                         val downloadUri = task.result
                         val message = Message(
-                            userId,
-                            downloadUri.toString(),
-                            System.currentTimeMillis()
+                                userId,
+                                downloadUri.toString(),
+                                System.currentTimeMillis()
                         )
                         firebaseDb.collection("Delivering")
-                            .document(deliver_id!!)
-                            .collection("message")
-                            .document()
-                            .set(message)
+                                .document(deliver_id!!)
+                                .collection("message")
+                                .document()
+                                .set(message)
                     } else {
                         // Handle failures
                         // ...
                         Toast.makeText(
-                            requireContext(),
-                            "Failed to get url file",
-                            Toast.LENGTH_LONG
+                                requireContext(),
+                                "Failed to get url file",
+                                Toast.LENGTH_LONG
                         )
-                            .show()
+                                .show()
                     }
                 }
             }
@@ -588,29 +610,29 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
 
     private fun mapsMarkers(
-        lat: Double,
-        lng: Double,
-        title: String = "IDN Boarding School"
+            lat: Double,
+            lng: Double,
+            title: String = "IDN Boarding School"
     ) {
         val idnBoardingSchool = LatLng(lat, lng)
         this.googleMap.addMarker(
-            MarkerOptions()
-                .position(idnBoardingSchool)
-                .title(title)
+                MarkerOptions()
+                        .position(idnBoardingSchool)
+                        .title(title)
         )
         this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
         // initial camera
         val cameraPosition = CameraPosition.builder().zoom(15.0f)
-            .target(idnBoardingSchool)
+                .target(idnBoardingSchool)
         val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
         this.googleMap.animateCamera(cameraUpdate)
     }
 
     private fun mapsRoutesDirection(
-        originLat: Double,
-        originLong: Double,
-        destinationLat: Double,
-        destinationLong: Double
+            originLat: Double,
+            originLong: Double,
+            destinationLat: Double,
+            destinationLong: Double
     ) {
         // Get Location
         val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
@@ -619,9 +641,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         Log.d("Tes", "Tes ${origin[0].getAddressLine(0)} - ${destination[0].getAddressLine(0)}")
 
         viewModel.getDirectionMaps(
-            origin = origin[0].getAddressLine(0),
-            destination = destination[0].getAddressLine(0),
-            key = getString(R.string.google_maps_key)
+                origin = origin[0].getAddressLine(0),
+                destination = destination[0].getAddressLine(0),
+                key = getString(R.string.google_maps_key)
         )
     }
 
@@ -637,9 +659,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
         //BOUND_PADDING is an int to specify padding of bound.. try 100.
         val bounds: LatLngBounds = LatLngBounds.Builder()
-            .include(origin)
-            .include(destination)
-            .build()
+                .include(origin)
+                .include(destination)
+                .build()
 
         // Gets screen size
         val width = resources.displayMetrics.widthPixels
@@ -654,14 +676,14 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
     private fun mapsAreas() {
         val polygon1 = googleMap.addPolygon(
-            PolygonOptions()
-                .clickable(true)
-                .add(
-                    LatLng(-27.457, 153.040),
-                    LatLng(-33.852, 151.211),
-                    LatLng(-37.813, 144.962),
-                    LatLng(-34.928, 138.599)
-                )
+                PolygonOptions()
+                        .clickable(true)
+                        .add(
+                                LatLng(-27.457, 153.040),
+                                LatLng(-33.852, 151.211),
+                                LatLng(-37.813, 144.962),
+                                LatLng(-34.928, 138.599)
+                        )
         )
 
         polygon1.tag = "A"

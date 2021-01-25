@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/courier_navigation"
-    app:startDestination="@id/courierDashboardFragment">
+    app:startDestination="@id/navigation_dashboard">
 
     <fragment
-        android:id="@+id/courierDashboardFragment"
+        android:id="@+id/navigation_dashboard"
         android:name="id.cikup.couriermanagementsystem.ui.courier.dashboard.CourierDashboardFragment"
         android:label="CourierDashboardFragment" >
         <action
@@ -22,7 +22,7 @@
         tools:layout="@layout/fragment_tugas" >
         <action
             android:id="@+id/action_navigation_tugas_to_courierDashboardFragment"
-            app:destination="@id/courierDashboardFragment" />
+            app:destination="@id/navigation_dashboard" />
     </fragment>
 
     <fragment

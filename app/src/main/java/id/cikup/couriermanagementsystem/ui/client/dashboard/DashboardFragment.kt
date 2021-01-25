@@ -153,8 +153,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                         System.currentTimeMillis()
                     )
                     firebaseDb.collection("Delivering")
-                        .document("313drUbMYZrPEMHcdKID")
-                        .collection("message")
+                        .document("zhhgw5bu8y4LfujqYQZu")
+                        .collection("messages")
                         .document()
                         .set(message)
                     chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
@@ -167,6 +167,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 builder.setMessage("Apakah anda yakin ingin log out?")
                 builder.setPositiveButton("Ya") { dialog, which ->
                     FirebaseAuth.getInstance().signOut()
+                    Hawk.deleteAll()
                     findNavController().navigate(R.id.action_navigation_dashboard_to_mainActivity)
                 }
                 builder.setNegativeButton("Tidak") { dialog, which ->
@@ -223,8 +224,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     fun getMessage() {
         firebaseDb.collection("Delivering")
-            .document("313drUbMYZrPEMHcdKID")
-            .collection("message").orderBy("time")
+            .document("zhhgw5bu8y4LfujqYQZu")
+            .collection("messages").orderBy("time")
             .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                 if (firebaseFirestoreException != null) {
                     firebaseFirestoreException.printStackTrace()
@@ -253,7 +254,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     private fun getDataMaps() {
         val docMaps = firebaseDb.collection("Maps")
-            .document("ZlzjttvSz2o9MIK9W6kl")
+            .document("zhhgw5bu8y4LfujqYQZu")
             .collection("marker")
             .document("sIng06RlDbGjSjbJpXwm")
         docMaps.addSnapshotListener { value, error ->

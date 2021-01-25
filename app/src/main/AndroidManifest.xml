@@ -20,7 +20,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CourierManagementSystem">
-        <activity android:name=".ui.courier.dashboard.CourierMainActivity"></activity>
+        <activity
+            android:name=".ui.courier.dashboard.CourierMainActivity"
+            android:theme="@style/Theme.CourierManagementSystemNoActionBar" />
         <activity
             android:name=".ui.main.MainActivity"
             android:theme="@style/Theme.CourierManagementSystemNoActionBar">
@@ -33,7 +35,7 @@
         <activity
             android:name=".HomeActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.CourierManagementSystemNoActionBar"></activity>
+            android:theme="@style/Theme.CourierManagementSystemNoActionBar" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
