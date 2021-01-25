@@ -27,6 +27,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.textview.MaterialTextView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
@@ -42,6 +43,7 @@ import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
 import id.cikup.couriermanagementsystem.ui.client.dashboard.ConversationAdapter
+import id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardFragment
 import id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardVM
 import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
 import kotlinx.android.synthetic.main.fragment_reimburse.*
@@ -84,6 +86,12 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
     // Maps
     private var mapFragment: SupportMapFragment? = null
+    private var titleOrigin: String? = ""
+    private var titleDestination: String? = ""
+    // Jarak Antar 2 Titik
+    private var distances: Double? = 0.0
+
+
     var uriPilihFoto: Uri? = null
     lateinit var mCurrentPhotoPath: String
     var file: File? = null
@@ -298,7 +306,7 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
     private fun getDataMaps() {
         val docMaps = firebaseDb.collection("Maps")
-                .document("ZlzjttvSz2o9MIK9W6kl")
+                .document("zhhgw5bu8y4LfujqYQZu")
                 .collection("marker")
                 .document("sIng06RlDbGjSjbJpXwm")
         docMaps.addSnapshotListener { value, error ->
@@ -306,17 +314,18 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
             when (value?.getString("status")) {
                 "marker" -> {
-                    val geoPoint = value.getGeoPoint("marker")
+                    val maps = value.get("marker") as Map<Any, Any>
+                    val origin = maps["origin"] as GeoPoint
+                    val title = maps["title"] as String
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
 
-                        geoPoint?.let {
-                            mapsMarkers(
-                                    lat = it.latitude,
-                                    lng = it.longitude
-                            )
-                        }
+                        mapsMarkers(
+                                lat = origin.latitude,
+                                lng = origin.longitude,
+                                title = title
+                        )
                     }
                 }
 
@@ -329,6 +338,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
                         val origin = maps["origin"] as GeoPoint
                         val destination = maps["destination"] as GeoPoint
+
+                        titleOrigin = maps["title_origin"] as String
+                        titleDestination = maps["title_destination"] as String
 
                         mapsRoutesDirection(
                                 originLat = origin.latitude,
@@ -347,6 +359,7 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
         with(viewModel) {
             success.observe(viewLifecycleOwner, {
+                Log.d("Maps", "$it")
                 routes = it.routes?.get(0)?.overviewPolyline?.points
 
                 val latStart = it.routes?.get(0)?.legs?.get(0)?.startLocation?.lat
@@ -363,8 +376,18 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         destination = LatLng(
                                 latEnd.toString().toDouble(),
                                 lngEnd.toString().toDouble()
-                        )
+                        ),
+                        titleOrigin = titleOrigin.toString(),
+                        titleDestination = titleDestination.toString()
                 )
+
+                // Set Jarak
+                val distence = it.routes?.get(0)?.legs?.get(0)?.distance?.value?.toDouble()
+                // Convert To KM
+                distances = distence?.let {
+                    it / 1000
+                }
+                jumlahJarakDashboardFragmentTV.text = it.routes?.get(0)?.legs?.get(0)?.distance?.text
             })
 
             errorMessage.observe(viewLifecycleOwner, {
@@ -372,7 +395,6 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             })
         }
     }
-
     override fun onBackPressed() {
         this.requireActivity().moveTaskToBack(true)
     }
@@ -612,7 +634,7 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     private fun mapsMarkers(
             lat: Double,
             lng: Double,
-            title: String = "IDN Boarding School"
+            title: String
     ) {
         val idnBoardingSchool = LatLng(lat, lng)
         this.googleMap.addMarker(
@@ -621,11 +643,25 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         .title(title)
         )
         this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        // Info Marker
+        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(p0: Marker?): View? {
+                return null
+            }
+
+            override fun getInfoContents(p0: Marker?): View {
+                val view = layoutInflater.inflate(R.layout.layout_marker, null)
+                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
+                tviNamePopup.text = p0?.title.toString()
+                return view
+            }
+        })
         // initial camera
         val cameraPosition = CameraPosition.builder().zoom(15.0f)
                 .target(idnBoardingSchool)
         val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
         this.googleMap.animateCamera(cameraUpdate)
+        this.googleMap.isTrafficEnabled = true
     }
 
     private fun mapsRoutesDirection(
@@ -634,21 +670,21 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             destinationLat: Double,
             destinationLong: Double
     ) {
-        // Get Location
-        val geocoder = Geocoder(requireContext(), Locale("id", "ID"))
-        val origin = geocoder.getFromLocation(originLat, originLong, 1)
-        val destination = geocoder.getFromLocation(destinationLat, destinationLong, 1)
-        Log.d("Tes", "Tes ${origin[0].getAddressLine(0)} - ${destination[0].getAddressLine(0)}")
-
         viewModel.getDirectionMaps(
-                origin = origin[0].getAddressLine(0),
-                destination = destination[0].getAddressLine(0),
+                origin = "$originLat,$originLong",
+                destination = "$destinationLat,$destinationLong",
                 key = getString(R.string.google_maps_key)
         )
     }
 
     // Draw polyline on map
-    private fun drawPolyLineOnMap(router: String, origin: LatLng, destination: LatLng) {
+    private fun drawPolyLineOnMap(
+            router: String,
+            origin: LatLng,
+            destination: LatLng,
+            titleOrigin: String,
+            titleDestination: String
+    ) {
         val polyOptions = PolylineOptions()
         polyOptions.color(Color.BLUE)
         polyOptions.width(8f)
@@ -668,10 +704,23 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         val height = resources.displayMetrics.heightPixels
         val padding = width * 0.20
         val location = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding.toInt())
+        // Info Marker
+        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(p0: Marker?): View? {
+                return null
+            }
+
+            override fun getInfoContents(p0: Marker?): View {
+                val view = layoutInflater.inflate(R.layout.layout_marker, null)
+                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
+                tviNamePopup.text = p0?.title.toString()
+                return view
+            }
+        })
         googleMap.animateCamera(location)
-        googleMap.addMarker(MarkerOptions().position(origin))
-        googleMap.addMarker(MarkerOptions().position(destination))
-//        googleMap.isTrafficEnabled = true
+        googleMap.addMarker(MarkerOptions().position(origin).title(titleOrigin))
+        googleMap.addMarker(MarkerOptions().position(destination).title(titleDestination))
+        googleMap.isTrafficEnabled = true
     }
 
     private fun mapsAreas() {
@@ -682,12 +731,10 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                                 LatLng(-27.457, 153.040),
                                 LatLng(-33.852, 151.211),
                                 LatLng(-37.813, 144.962),
-                                LatLng(-34.928, 138.599)
-                        )
-        )
+                                LatLng(-34.928, 138.599)))
 
         polygon1.tag = "A"
-        polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()
+        polygon1.strokeWidth = DashboardFragment.POLYGON_STROKE_WIDTH_PX.toFloat()
 
 
         // Position the map's camera near Alice Springs in the center of Australia,

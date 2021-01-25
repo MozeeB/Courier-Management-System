@@ -47,7 +47,7 @@ class TugasFragment : Fragment() {
     fun getUser(){
         val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
         firebaseDb.collection("Users")
-            .document("LTVWUsRbvdOoUujHvmCokeH6uKu2")
+            .document(currentUserID)
             .get()
             .addOnSuccessListener { documentSnapshot ->
                 val user = documentSnapshot.toObject(UsersModel::class.java)

@@ -341,7 +341,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 distances = distence?.let {
                     it / 1000
                 }
-                jumlahJarakDashboardFragmentTV.text = it.routes?.get(0)?.legs?.get(0)?.distance?.text
+//                jumlahJarakDashboardFragmentTV.text = it.routes?.get(0)?.legs?.get(0)?.distance?.text
             })
 
             errorMessage.observe(viewLifecycleOwner, {
