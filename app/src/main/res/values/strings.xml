@@ -75,5 +75,7 @@
     <string name="province">Province</string>
     <string name="zip">Zip</string>
     <string name="country">Country</string>
+    <string name="total">Total</string>
+    <string name="status">Status</string>
 
 </resources>

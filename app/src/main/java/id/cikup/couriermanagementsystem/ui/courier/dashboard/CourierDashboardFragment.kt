@@ -83,7 +83,6 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     private var routes: String? = null
 
     private val viewModel by viewModel<DashboardVM>()
-
     // Maps
     private var mapFragment: SupportMapFragment? = null
     private var titleOrigin: String? = ""
@@ -131,6 +130,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         }
 
         getUser()
+        // Data Maps
+        getDataMaps()
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -153,8 +154,7 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             pilihFotoDashboardeFragmentBTN.setText("Pilih Foto")
 
         }
-        // Data Maps
-        getDataMaps()
+
 
         // Create Maps
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
@@ -395,6 +395,122 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             })
         }
     }
+
+
+    private fun mapsMarkers(
+            lat: Double,
+            lng: Double,
+            title: String
+    ) {
+        val idnBoardingSchool = LatLng(lat, lng)
+        this.googleMap.addMarker(
+                MarkerOptions()
+                        .position(idnBoardingSchool)
+                        .title(title)
+        )
+        this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        // Info Marker
+        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(p0: Marker?): View? {
+                return null
+            }
+
+            override fun getInfoContents(p0: Marker?): View {
+                val view = layoutInflater.inflate(R.layout.layout_marker, null)
+                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
+                tviNamePopup.text = p0?.title.toString()
+                return view
+            }
+        })
+        // initial camera
+        val cameraPosition = CameraPosition.builder().zoom(15.0f)
+                .target(idnBoardingSchool)
+        val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
+        this.googleMap.animateCamera(cameraUpdate)
+        this.googleMap.isTrafficEnabled = true
+    }
+
+    private fun mapsRoutesDirection(
+            originLat: Double,
+            originLong: Double,
+            destinationLat: Double,
+            destinationLong: Double
+    ) {
+        viewModel.getDirectionMaps(
+                origin = "$originLat,$originLong",
+                destination = "$destinationLat,$destinationLong",
+                key = getString(R.string.google_maps_key)
+        )
+    }
+
+    // Draw polyline on map
+    private fun drawPolyLineOnMap(
+            router: String,
+            origin: LatLng,
+            destination: LatLng,
+            titleOrigin: String,
+            titleDestination: String
+    ) {
+        val polyOptions = PolylineOptions()
+        polyOptions.color(Color.BLUE)
+        polyOptions.width(8f)
+        polyOptions.addAll(PolyUtil.decode(router))
+        googleMap.clear()
+        googleMap.addPolyline(polyOptions)
+        googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
+
+        //BOUND_PADDING is an int to specify padding of bound.. try 100.
+        val bounds: LatLngBounds = LatLngBounds.Builder()
+                .include(origin)
+                .include(destination)
+                .build()
+
+        // Gets screen size
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+        val padding = width * 0.20
+        val location = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding.toInt())
+        // Info Marker
+        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(p0: Marker?): View? {
+                return null
+            }
+
+            override fun getInfoContents(p0: Marker?): View {
+                val view = layoutInflater.inflate(R.layout.layout_marker, null)
+                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
+                tviNamePopup.text = p0?.title.toString()
+                return view
+            }
+        })
+        googleMap.animateCamera(location)
+        googleMap.addMarker(MarkerOptions().position(origin).title(titleOrigin))
+        googleMap.addMarker(MarkerOptions().position(destination).title(titleDestination))
+        googleMap.isTrafficEnabled = true
+    }
+
+    private fun mapsAreas() {
+        val polygon1 = googleMap.addPolygon(
+                PolygonOptions()
+                        .clickable(true)
+                        .add(
+                                LatLng(-27.457, 153.040),
+                                LatLng(-33.852, 151.211),
+                                LatLng(-37.813, 144.962),
+                                LatLng(-34.928, 138.599)))
+
+        polygon1.tag = "A"
+        polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()
+
+
+        // Position the map's camera near Alice Springs in the center of Australia,
+        // and set the zoom factor so most of Australia shows on the screen.
+
+        // Position the map's camera near Alice Springs in the center of Australia,
+        // and set the zoom factor so most of Australia shows on the screen.
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(-23.684, 133.903), 2f))
+    }
+
     override fun onBackPressed() {
         this.requireActivity().moveTaskToBack(true)
     }
@@ -631,118 +747,5 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     }
 
 
-    private fun mapsMarkers(
-            lat: Double,
-            lng: Double,
-            title: String
-    ) {
-        val idnBoardingSchool = LatLng(lat, lng)
-        this.googleMap.addMarker(
-                MarkerOptions()
-                        .position(idnBoardingSchool)
-                        .title(title)
-        )
-        this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
-        // Info Marker
-        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
-            override fun getInfoWindow(p0: Marker?): View? {
-                return null
-            }
-
-            override fun getInfoContents(p0: Marker?): View {
-                val view = layoutInflater.inflate(R.layout.layout_marker, null)
-                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
-                tviNamePopup.text = p0?.title.toString()
-                return view
-            }
-        })
-        // initial camera
-        val cameraPosition = CameraPosition.builder().zoom(15.0f)
-                .target(idnBoardingSchool)
-        val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
-        this.googleMap.animateCamera(cameraUpdate)
-        this.googleMap.isTrafficEnabled = true
-    }
-
-    private fun mapsRoutesDirection(
-            originLat: Double,
-            originLong: Double,
-            destinationLat: Double,
-            destinationLong: Double
-    ) {
-        viewModel.getDirectionMaps(
-                origin = "$originLat,$originLong",
-                destination = "$destinationLat,$destinationLong",
-                key = getString(R.string.google_maps_key)
-        )
-    }
-
-    // Draw polyline on map
-    private fun drawPolyLineOnMap(
-            router: String,
-            origin: LatLng,
-            destination: LatLng,
-            titleOrigin: String,
-            titleDestination: String
-    ) {
-        val polyOptions = PolylineOptions()
-        polyOptions.color(Color.BLUE)
-        polyOptions.width(8f)
-        polyOptions.addAll(PolyUtil.decode(router))
-        googleMap.clear()
-        googleMap.addPolyline(polyOptions)
-        googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
-
-        //BOUND_PADDING is an int to specify padding of bound.. try 100.
-        val bounds: LatLngBounds = LatLngBounds.Builder()
-                .include(origin)
-                .include(destination)
-                .build()
-
-        // Gets screen size
-        val width = resources.displayMetrics.widthPixels
-        val height = resources.displayMetrics.heightPixels
-        val padding = width * 0.20
-        val location = CameraUpdateFactory.newLatLngBounds(bounds, width, height, padding.toInt())
-        // Info Marker
-        this.googleMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
-            override fun getInfoWindow(p0: Marker?): View? {
-                return null
-            }
-
-            override fun getInfoContents(p0: Marker?): View {
-                val view = layoutInflater.inflate(R.layout.layout_marker, null)
-                val tviNamePopup = view.findViewById<MaterialTextView>(R.id.tvTitle)
-                tviNamePopup.text = p0?.title.toString()
-                return view
-            }
-        })
-        googleMap.animateCamera(location)
-        googleMap.addMarker(MarkerOptions().position(origin).title(titleOrigin))
-        googleMap.addMarker(MarkerOptions().position(destination).title(titleDestination))
-        googleMap.isTrafficEnabled = true
-    }
-
-    private fun mapsAreas() {
-        val polygon1 = googleMap.addPolygon(
-                PolygonOptions()
-                        .clickable(true)
-                        .add(
-                                LatLng(-27.457, 153.040),
-                                LatLng(-33.852, 151.211),
-                                LatLng(-37.813, 144.962),
-                                LatLng(-34.928, 138.599)))
-
-        polygon1.tag = "A"
-        polygon1.strokeWidth = DashboardFragment.POLYGON_STROKE_WIDTH_PX.toFloat()
-
-
-        // Position the map's camera near Alice Springs in the center of Australia,
-        // and set the zoom factor so most of Australia shows on the screen.
-
-        // Position the map's camera near Alice Springs in the center of Australia,
-        // and set the zoom factor so most of Australia shows on the screen.
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(-23.684, 133.903), 2f))
-    }
 
 }

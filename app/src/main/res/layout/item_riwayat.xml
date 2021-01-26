@@ -29,18 +29,44 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/status"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                android:layout_marginTop="@dimen/_10sdp"
+                app:layout_constraintEnd_toEndOf="@+id/statusAtoBUpahItemViewTV"
+                app:layout_constraintStart_toStartOf="@+id/statusAtoBUpahItemViewTV"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_20sdp"
+                android:layout_marginRight="@dimen/_20sdp"
+                android:text="@string/reimburse"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@+id/distanceAtoBUpahItemViewTV"
+                app:layout_constraintStart_toStartOf="@+id/distanceAtoBUpahItemViewTV"
+                app:layout_constraintTop_toTopOf="@+id/textView2" />
+
+
             <TextView
                 android:id="@+id/streetNameItemViewTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_10sdp"
                 android:gravity="center_horizontal"
                 android:text="@string/a_ke_b"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:textAlignment="center"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
             <TextView
                 android:id="@+id/statusAtoBUpahItemViewTV"

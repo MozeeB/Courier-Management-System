@@ -118,26 +118,18 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         kirimChatDasboardFragmentIV.setOnClickListener(this)
         logOut.setOnClickListener(this)
         attachmentDashboardFragmentIV.setOnClickListener(this)
-        pilihFotoDashboardeFragmentBTN.setOnClickListener(this)
+        disconnectChatBTN.setOnClickListener(this)
+
+        getUser()
+
+        // Data Maps
+        getDataMaps()
 
         chatDashboardFragmentRV.apply {
             setHasFixedSize(false)
             layoutManager = LinearLayoutManager(context)
             adapter = conversationAdapter
         }
-
-        getUser()
-
-
-        if (uriPilihFoto != null) {
-            pilihFotoDashboardeFragmentBTN.setText("Upload")
-        } else {
-            pilihFotoDashboardeFragmentBTN.setText("Pilih Foto")
-
-        }
-
-        // Data Maps
-        getDataMaps()
 
         // Create Maps
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
@@ -197,19 +189,19 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 }
 
             }
-            R.id.pilihFotoDashboardeFragmentBTN -> {
-                if (uriPilihFoto != null) {
-                    Toast.makeText(context, "Silahkan pilih foto.", Toast.LENGTH_LONG).show()
+            R.id.disconnectChatBTN -> {
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle("Disconnect Chat")
+                builder.setMessage("Apakah anda yakin ingin mengakhiri chat?")
+                builder.setPositiveButton("Ya") { dialog, which ->
 
-                } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                        if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
-                            managePermissions.showAlert()
-                        } else {
-                            Utils.INSTANCE.showImageDashboardChooser(this)
-                        }
+                }
+                builder.setNegativeButton("Tidak") { dialog, which ->
+
                 }
 
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
             }
         }
     }
@@ -411,14 +403,12 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     file = Utils.INSTANCE.file
                     uriPilihFoto = Utils.INSTANCE.filePath!!
                     mCurrentPhotoPath = Utils.INSTANCE.mCurrentPhotoPath
-                    setPic()
 
                 }
                 GALLERY_DASHBOARD -> {
                     if (data != null) {
                         file = Utils.INSTANCE.getBitmapFile(data, this)
                         uriPilihFoto = data.data
-                        setPicFromGalery()
                     }
                 }
             }
@@ -471,121 +461,6 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     }
 
 
-    private fun setPic() {
-        // Get the dimensions of the View
-        val targetW: Int = pilihFotoDashboardeFragmentIV.width
-        val targetH: Int = pilihFotoDashboardeFragmentIV.height
-
-        val bmOptions = BitmapFactory.Options().apply {
-            // Get the dimensions of the bitmap
-            inJustDecodeBounds = true
-
-            BitmapFactory.decodeFile(mCurrentPhotoPath, this)
-
-            val photoW: Int = outWidth
-            val photoH: Int = outHeight
-            // Determine how much to scale down the image
-            val scaleFactor: Int = (photoW / targetW).coerceAtMost(photoH / targetH)
-
-            // Decode the image file into a Bitmap sized to fill the View
-            inJustDecodeBounds = false
-            inSampleSize = scaleFactor
-            inPurgeable = true
-        }
-        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions)?.also { bitmap ->
-            pilihFotoDashboardeFragmentIV.setImageBitmap(bitmap)
-            galleryAddPic(bitmap)
-        }
-    }
-
-    private fun setPicFromGalery() {
-
-        var parcelFD: ParcelFileDescriptor? = null
-        try {
-            parcelFD = uriPilihFoto?.let { context?.contentResolver?.openFileDescriptor(it, "r") }
-            val imageSource = parcelFD?.fileDescriptor
-            // Decode image size
-            val o = BitmapFactory.Options()
-            o.inJustDecodeBounds = true
-            BitmapFactory.decodeFileDescriptor(imageSource, null, o)
-            // the new size we want to scale to
-            val requiredSize = 1024
-            // Find the correct scale value. It should be the power of 2.
-            var widthTmp = o.outWidth
-            var heightTmp = o.outHeight
-            var scale = 1
-            while (true) {
-                if (widthTmp < requiredSize && heightTmp < requiredSize) {
-                    break
-                }
-                widthTmp /= 2
-                heightTmp /= 2
-                scale *= 2
-            }
-            // decode with inSampleSize
-            val o2 = BitmapFactory.Options()
-            o2.inSampleSize = scale
-            val bitmap = BitmapFactory.decodeFileDescriptor(imageSource, null, o2)
-            pilihFotoDashboardeFragmentIV.setImageBitmap(bitmap)
-            galleryAddPic(bitmap)
-        } catch (e: FileNotFoundException) {
-            // handle errors
-        } catch (e: IOException) {
-            // handle errors
-        } finally {
-            if (parcelFD != null)
-                try {
-                    parcelFD.close()
-                } catch (e: IOException) {
-                    // ignored
-                }
-        }
-    }
-
-    private val FILE_MAX_SIZE = 350 * 1024
-    private var COMPRESS_QUALITY = 99
-
-    @SuppressLint("LongLogTag", "LogNotTimber")
-    private fun galleryAddPic(bitmap: Bitmap) {
-        try {
-            var bmpStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bmpStream)
-            var bmpPicByteArray = bmpStream.toByteArray()
-            var streamLength = bmpPicByteArray.size
-            if (streamLength > FILE_MAX_SIZE) {
-                while (streamLength > FILE_MAX_SIZE) {
-                    bmpStream = ByteArrayOutputStream()
-
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, COMPRESS_QUALITY, bmpStream)
-                    bmpPicByteArray = bmpStream.toByteArray()
-                    streamLength = bmpPicByteArray.size
-                    COMPRESS_QUALITY -= 5
-                    if (COMPRESS_QUALITY == 10) {
-                        break
-                    }
-                }
-                if (file!!.exists()) {
-                    val fOut = FileOutputStream(file)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, COMPRESS_QUALITY, fOut)
-                    fOut.flush()
-                    fOut.close()
-                }
-            } else {
-                if (file!!.exists()) {
-                    val fOut = FileOutputStream(file)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
-                    fOut.flush()
-                    fOut.close()
-                }
-            }
-        } catch (e: FileNotFoundException) {
-            Log.e("TAG", "galleryAddPic: error file = ${e.message}")
-        } catch (e: IOException) {
-            Log.e("TAG", "galleryAddPic: error IO = ${e.message}")
-        }
-
-
-    }
 
 
     private fun mapsMarkers(

@@ -37,9 +37,9 @@ class RiwayatFragment : Fragment() {
 
     fun setUpRecyclerView(){
         val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
-        val query = firebaseDb.collection("Upah")
+        val query = firebaseDb.collection("Salary")
                 .document(currentUserID)
-                .collection("upah")
+                .collection("salary")
         val firestoreRecyclerOptions : FirestoreRecyclerOptions<RiwayatModel> = FirestoreRecyclerOptions.Builder<RiwayatModel>()
                 .setQuery(query, RiwayatModel::class.java)
                 .build()
