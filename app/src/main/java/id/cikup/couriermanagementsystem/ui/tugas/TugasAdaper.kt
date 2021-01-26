@@ -30,7 +30,10 @@ class TugasAdaper(option: FirestoreRecyclerOptions<TugasModel>) :
         holder: TugasViewHolder,
         position: Int,
         model: TugasModel
-    ) { holder.streetName.text = model.title
+    ) {
+
+
+        holder.streetName.text = model.location?.get(1)?.marker?.get(1)?.title
 
         holder.acc.setOnClickListener {
             val builder = AlertDialog.Builder(it.context)

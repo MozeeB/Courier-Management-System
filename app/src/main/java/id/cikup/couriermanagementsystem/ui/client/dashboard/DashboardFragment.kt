@@ -448,8 +448,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                             System.currentTimeMillis()
                         )
                         firebaseDb.collection("Delivering")
-                            .document("313drUbMYZrPEMHcdKID")
-                            .collection("message")
+                            .document("zhhgw5bu8y4LfujqYQZu")
+                            .collection("messages")
                             .document()
                             .set(message)
                     } else {

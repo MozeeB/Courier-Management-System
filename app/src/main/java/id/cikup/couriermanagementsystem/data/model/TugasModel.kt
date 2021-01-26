@@ -18,8 +18,8 @@ data class TugasModel(
 
 
 data class Location(
-        var direction: List<Direction> = emptyList(),
-        var marker:List<Marker> = emptyList()
+        var direction: Map<String, Direction> = emptyMap(),
+        var marker:Map<String, Marker> = emptyMap()
 )
 
 data class Direction(
