@@ -13,7 +13,8 @@ data class TugasModel(
         var tall:String = "",
         var type_package:String = "",
         var width:Int = 0,
-        var title:String = ""
+        var title:String = "",
+        var status_delivering:String = ""
 )
 
 

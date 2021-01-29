@@ -6,6 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.github.nkzawa.emitter.Emitter
@@ -32,6 +35,7 @@ class RegisterFragment : Fragment(), View.OnClickListener {
 
 //    private var socket: Socket? = null
 
+    var role = ""
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
@@ -54,9 +58,25 @@ class RegisterFragment : Fragment(), View.OnClickListener {
 //        socket?.on(Socket.EVENT_CONNECT_ERROR, onConnectError)
 //        socket?.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError)
 //        socket?.on("server_message", onServerMessage)
+        // Create an ArrayAdapter
+        val listRole = resources.getStringArray(R.array.role)
 
+        val adapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.role, android.R.layout.simple_list_item_1)
+        spinner.adapter = adapter
 
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                role = listRole[p2]
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                TODO("Not yet implemented")
+            }
+
+        }
     }
+
 
     private val onConnect = Emitter.Listener {
         println("Connected to server")
@@ -151,7 +171,7 @@ class RegisterFragment : Fragment(), View.OnClickListener {
 //                        socket?.emit("user_registration", userObject)
                         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
                             if (it.isSuccessful) {
-                                saveInfoUser(firstName, backName, telepon, email, address, city, province, zip, country, true, "none")
+                                saveInfoUser(firstName, backName, telepon, email, address, city, province, zip, country, true, role)
                             } else {
                                 progressBarHolderLoginCL.visibility = View.GONE
                                 auth.signOut()
@@ -188,7 +208,8 @@ class RegisterFragment : Fragment(), View.OnClickListener {
                 "zip" to zip,
                 "country" to country,
                 "active" to active,
-                "role" to role
+                "role" to role,
+                "order_id" to ""
         )
 
         firebaseDb.collection("Users").document(currentUserID)

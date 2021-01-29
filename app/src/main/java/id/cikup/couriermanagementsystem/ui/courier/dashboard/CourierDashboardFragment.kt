@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.location.Geocoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,18 +17,16 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.net.toUri
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.textview.MaterialTextView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.FirebaseStorage
@@ -42,11 +39,9 @@ import id.cikup.couriermanagementsystem.data.model.UsersModel
 import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
-import id.cikup.couriermanagementsystem.ui.client.dashboard.ConversationAdapter
-import id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardFragment
+import id.cikup.couriermanagementsystem.ui.tugas.chats.ConversationAdapter
 import id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardVM
 import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
-import kotlinx.android.synthetic.main.fragment_reimburse.*
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.io.*
 import java.text.SimpleDateFormat
@@ -83,10 +78,12 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     private var routes: String? = null
 
     private val viewModel by viewModel<DashboardVM>()
+
     // Maps
     private var mapFragment: SupportMapFragment? = null
     private var titleOrigin: String? = ""
     private var titleDestination: String? = ""
+
     // Jarak Antar 2 Titik
     private var distances: Double? = 0.0
 
@@ -95,8 +92,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     lateinit var mCurrentPhotoPath: String
     var file: File? = null
 
-
-    var deliver_id: String? = null
+    var order_id = ""
+    var nama_lengkap = ""
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -117,21 +114,12 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
         mStorage = FirebaseStorage.getInstance().getReference("Uploads")
 
-
-        kirimChatDasboardFragmentIV.setOnClickListener(this)
         logOut.setOnClickListener(this)
-        attachmentDashboardFragmentIV.setOnClickListener(this)
         pilihFotoDashboardeFragmentBTN.setOnClickListener(this)
-
-        chatDashboardFragmentRV.apply {
-            setHasFixedSize(false)
-            layoutManager = LinearLayoutManager(context)
-            adapter = conversationAdapter
-        }
+        kirimCourierDashboardeFragmentBTN.setOnClickListener(this)
 
         getUser()
         // Data Maps
-        getDataMaps()
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -146,48 +134,14 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             val answer: String = formatter.format(date)
             dateDashboardFragmentTV.text = answer
         }
-
-
-        if (uriPilihFoto != null) {
-            pilihFotoDashboardeFragmentBTN.setText("Upload")
-        } else {
-            pilihFotoDashboardeFragmentBTN.setText("Pilih Foto")
-
-        }
-
-
         // Create Maps
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
 
-        deliver_id = Hawk.get("order_id", "")
-        if (deliver_id?.isNullOrEmpty() == false) {
-            getMessage()
-        }
 
     }
 
     override fun onClick(p0: View?) {
         when (p0?.id) {
-            R.id.kirimChatDasboardFragmentIV -> {
-                if (!chatDashboardFragmentEDT.text.isNullOrEmpty()) {
-                    val message = Message(
-                            userId,
-                            chatDashboardFragmentEDT.text.toString(),
-                            System.currentTimeMillis()
-                    )
-                    if (deliver_id != null) {
-                        firebaseDb.collection("Delivering")
-                                .document(deliver_id!!)
-                                .collection("messages")
-                                .document()
-                                .set(message)
-                        chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
-                    } else {
-                        Toast.makeText(context, "Anda belum terhubung dengan siapapun", Toast.LENGTH_LONG).show()
-                    }
-
-                }
-            }
             R.id.logOut -> {
                 val role = Hawk.get("role", "")
                 if (role == "courier") {
@@ -216,7 +170,7 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
                     }
                     builder.setNegativeButton("Tidak") { dialog, which ->
-
+                        dialog.dismiss()
                     }
 
                     val dialog: AlertDialog = builder.create()
@@ -224,20 +178,6 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
                 }
 
-
-            }
-            R.id.attachmentDashboardFragmentIV -> {
-                if (deliver_id != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                        if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
-                            managePermissions.showAlert()
-                        } else {
-                            Utils.INSTANCE.showAttachmentChooser(this)
-                        }
-                } else {
-                    Toast.makeText(context, "Anda belum terhubung dengan siapapun", Toast.LENGTH_LONG).show()
-
-                }
 
             }
             R.id.pilihFotoDashboardeFragmentBTN -> {
@@ -254,6 +194,13 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 }
 
             }
+            R.id.kirimCourierDashboardeFragmentBTN ->{
+                if (uriPilihFoto != null){
+                    uploadBuktiPenerima()
+                }else{
+                    Toast.makeText(context, "Silahkan pilih foto.", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
@@ -266,6 +213,11 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 .addOnSuccessListener { documentSnapshot ->
                     val user = documentSnapshot.toObject(UsersModel::class.java)
                     nameDashboardFragmentTV.text = "${user?.first_name} ${user?.last_name}"
+                    nama_lengkap = "${user?.first_name} ${user?.last_name}"
+                    order_id = user?.order_id.toString()
+                    if (order_id.isNotEmpty()) {
+                        getDataMaps()
+                    }
 
                 }
                 .addOnFailureListener {
@@ -273,50 +225,75 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 }
     }
 
-    fun getMessage() {
-        firebaseDb.collection("Delivering")
-                .document(deliver_id!!)
-                .collection("messages").orderBy("time")
-                .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                    if (firebaseFirestoreException != null) {
-                        firebaseFirestoreException.printStackTrace()
-                        return@addSnapshotListener
-                    } else {
-                        if (querySnapshot != null) {
-                            for (change in querySnapshot.documentChanges) {
-                                when (change.type) {
-                                    DocumentChange.Type.ADDED -> {
-                                        val message = change.document.toObject(Message::class.java)
-                                        if (message != null) {
-                                            conversationAdapter.addMessage(message)
-                                            chatDashboardFragmentRV.post {
-                                                chatDashboardFragmentRV.smoothScrollToPosition(
-                                                        conversationAdapter.itemCount - 1
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+    fun uploadBuktiPenerima() {
+        progressBarHolderLoginCL.visibility = View.VISIBLE
+        val ref = uriPilihFoto?.lastPathSegment?.let {
+            mStorage.child(it)
+        }
+        val uploadTask = uriPilihFoto?.let { ref?.putFile(it) }
+        uploadTask?.addOnSuccessListener {
+            uploadTask.continueWith { task ->
+                if (!task.isSuccessful) {
+                    task.exception?.let {
+                        throw it
                     }
                 }
+                ref?.downloadUrl?.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val downloadUri = task.result
+                        val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
+
+                        val dataBukti = hashMapOf(
+                                "courier_id" to currentUserID,
+                                "nama_lengkap" to nama_lengkap,
+                                "image" to downloadUri.toString()
+                        )
+
+                        firebaseDb.collection("BuktiPenerima")
+                                .document(currentUserID)
+                                .collection("bukti")
+                                .add(dataBukti)
+                                .addOnSuccessListener {
+                                    progressBarHolderLoginCL.visibility = View.GONE
+                                    Toast.makeText(context, "Kirim berhasil", Toast.LENGTH_LONG).show()
+                                }
+                                .addOnFailureListener {
+                                    progressBarHolderLoginCL.visibility = View.GONE
+                                    Toast.makeText(context, "Kirim gagal", Toast.LENGTH_LONG).show()
+
+
+                                }
+                    } else {
+                        // Handle failures
+                        // ...
+                        Toast.makeText(
+                                requireContext(),
+                                "Failed to get url file",
+                                Toast.LENGTH_LONG
+                        )
+                                .show()
+                    }
+                }
+            }
+        }?.addOnFailureListener {
+
+        }
     }
 
-
     private fun getDataMaps() {
-        val docMaps = firebaseDb.collection("Maps")
-                .document("ZlzjttvSz2o9MIK9W6kl")
-                .collection("marker")
-                .document("sIng06RlDbGjSjbJpXwm")
+        val docMaps = firebaseDb
+                .collection("Ordering")
+                .document(order_id)
         docMaps.addSnapshotListener { value, error ->
             Log.d("Hasil", "${value?.getString("status")} - $error")
 
             when (value?.getString("status")) {
                 "marker" -> {
-                    val maps = value.get("marker") as Map<Any, Any>
-                    val origin = maps["origin"] as GeoPoint
-                    val title = maps["title"] as String
+                    val location = value.get("location") as Map<*, *>
+                    val marker = location["marker"] as Map<*, *>
+
+                    val origin = marker["origin"] as GeoPoint
+                    val title = marker["title"] as String
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
@@ -333,14 +310,14 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
+                        val location = value.get("location") as Map<*,*>
+                        val direction = location["direction"] as Map<*, *>
 
-                        val maps = value.get("direction") as Map<Any, Any>
+                        val origin = direction["origin"] as GeoPoint
+                        val destination = direction["destination"] as GeoPoint
 
-                        val origin = maps["origin"] as GeoPoint
-                        val destination = maps["destination"] as GeoPoint
-
-                        titleOrigin = maps["title_origin"] as String
-                        titleDestination = maps["title_destination"] as String
+                        titleOrigin = direction["title_origin"] as String
+                        titleDestination = direction["title_destination"] as String
 
                         mapsRoutesDirection(
                                 originLat = origin.latitude,
@@ -607,8 +584,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                                 System.currentTimeMillis()
                         )
                         firebaseDb.collection("Delivering")
-                                .document(deliver_id!!)
-                                .collection("message")
+                                .document(order_id)
+                                .collection("messages")
                                 .document()
                                 .set(message)
                     } else {
@@ -745,7 +722,6 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
 
     }
-
 
 
 }

@@ -41,7 +41,7 @@
     <string name="to_checklist">to checklist</string>
     <string name="riwayat_pembayaran_anda">Riwayat Pembayaran Anda</string>
     <string name="a_ke_b">A ke B</string>
-    <string name="dummy_price">Rp 900.000,-</string>
+    <string name="dummy_price">Rp 0</string>
     <string name="dummy_distance">30 km</string>
     <string name="b_ke_c">B ke C</string>
     <string name="reimburse_1">Reimburse 1</string>
@@ -60,7 +60,7 @@
     <string name="jumlah_jarak">Jumlah Jarak :</string>
     <string name="_0_km">0 KM</string>
     <string name="estimasi_upah">Estimasi Upah :</string>
-    <string name="smk_idn_boarding_school">SMK IDN Boarding School</string>
+    <string name="smk_idn_boarding_school">Lokasi</string>
     <string name="chat">Chat</string>
     <string name="foto_bukti_penerima">Foto Bukti Penerima</string>
     <string name="forgot_password">Forgot Password?</string>
@@ -77,5 +77,11 @@
     <string name="country">Country</string>
     <string name="total">Total</string>
     <string name="status">Status</string>
+    <string name="deskripsi">Deskripsi</string>
+
+    <string-array name="role">
+        <item>Client</item>
+        <item>Courier</item>
+    </string-array>
 
 </resources>

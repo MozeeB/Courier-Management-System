@@ -10,7 +10,11 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -192,11 +196,11 @@
                         android:id="@+id/descriptionReimburseFragmentEDT"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="@dimen/_10sdp"
-                        android:layout_marginEnd="@dimen/_10sdp"
                         android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        tools:padding="@dimen/_10sdp"
+                        android:hint="@string/deskripsi"
                         android:textColor="@color/black"
-                        android:text="@string/des_dummy"
                         android:textSize="@dimen/_12ssp"
                         android:textStyle="italic"
                         app:layout_constraintBottom_toBottomOf="parent"

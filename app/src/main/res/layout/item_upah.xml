@@ -35,10 +35,10 @@
                 android:id="@+id/totalTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:text="@string/total"
                 android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
-                android:layout_marginTop="@dimen/_10sdp"
                 app:layout_constraintEnd_toEndOf="@+id/priceAtoBUpahItemViewTV"
                 app:layout_constraintStart_toStartOf="@+id/priceAtoBUpahItemViewTV"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -49,19 +49,16 @@
                 android:text="@string/reimburse"
                 android:textSize="@dimen/_12ssp"
                 android:textStyle="bold"
-                android:layout_marginEnd="@dimen/_20sdp"
                 app:layout_constraintEnd_toEndOf="@+id/distanceAtoBUpahItemViewTV"
-                app:layout_constraintStart_toStartOf="@+id/distanceAtoBUpahItemViewTV"
-                app:layout_constraintTop_toTopOf="@+id/totalTV"
-                android:layout_marginRight="@dimen/_20sdp" />
+                app:layout_constraintTop_toTopOf="@+id/totalTV" />
 
             <TextView
                 android:id="@+id/streetNameItemViewTV"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:gravity="center_horizontal"
                 android:text="@string/a_ke_b"
-                android:layout_marginTop="@dimen/_10sdp"
                 android:textAlignment="center"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintEnd_toEndOf="parent"

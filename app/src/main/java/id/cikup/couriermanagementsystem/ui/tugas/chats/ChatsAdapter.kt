@@ -1,4 +1,4 @@
-package id.cikup.couriermanagementsystem.ui.client.dashboard
+package id.cikup.couriermanagementsystem.ui.tugas.chats
 
 import android.view.LayoutInflater
 import android.view.View

@@ -192,6 +192,17 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/zipRegisterFragmentEDT" />
 
+                <Spinner
+                    android:id="@+id/spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:background="@drawable/custom_edt"
+                    android:spinnerMode="dialog"
+                    app:layout_constraintEnd_toEndOf="@+id/countryRegisterFragmentEDT"
+                    app:layout_constraintStart_toStartOf="@+id/countryRegisterFragmentEDT"
+                    app:layout_constraintTop_toBottomOf="@+id/countryRegisterFragmentEDT" />
+
                 <EditText
                     android:id="@+id/passwordRegisterFragmentEDT"
                     android:layout_width="match_parent"
@@ -204,7 +215,7 @@
                     android:inputType="textPassword"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/countryRegisterFragmentEDT" />
+                    app:layout_constraintTop_toBottomOf="@+id/spinner" />
 
                 <EditText
                     android:id="@+id/confirmPassRegisterFragmentEDT"

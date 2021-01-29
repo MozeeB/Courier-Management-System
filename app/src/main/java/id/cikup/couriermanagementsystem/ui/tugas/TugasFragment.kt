@@ -60,13 +60,13 @@ class TugasFragment : Fragment() {
     }
 
     fun setUpRecyclerView(){
-        val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
         val query = firebaseDb.collection("Ordering")
+                .whereIn("status_delivering", listOf("active","pending"))
         val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
             .setQuery(query, TugasModel::class.java)
             .build()
 
-        tugasAdaper = TugasAdaper(firestoreRecyclerOptions)
+        tugasAdaper = TugasAdaper(firestoreRecyclerOptions, requireContext())
         tugasFragmentRV.layoutManager = LinearLayoutManager(requireContext())
         tugasFragmentRV.adapter = tugasAdaper
     }

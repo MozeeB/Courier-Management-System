@@ -6,13 +6,9 @@ import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.location.Geocoder
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -25,7 +21,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.textview.MaterialTextView
@@ -43,13 +38,18 @@ import id.cikup.couriermanagementsystem.data.model.UsersModel
 import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
+import id.cikup.couriermanagementsystem.ui.tugas.chats.ConversationAdapter
+import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
 import kotlinx.android.synthetic.main.fragment_dashboard.*
+import kotlinx.android.synthetic.main.fragment_dashboard.logOut
+import kotlinx.android.synthetic.main.fragment_dashboard.nameDashboardFragmentTV
+import kotlinx.android.synthetic.main.fragment_dashboard.view.*
 import kotlinx.android.synthetic.main.fragment_login.*
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.util.*
 
 import kotlinx.android.synthetic.main.fragment_reimburse.*
-import kotlinx.android.synthetic.main.fragment_reimburse.progressBarHolderLoginCL
+import okhttp3.internal.notifyAll
 import java.io.*
 
 class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener {
@@ -94,13 +94,14 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     // Jarak Antar 2 Titik
     private var distances: Double? = 0.0
 
-    var deliver_id: String? = null
+    var order_id = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        getUser()
         return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
 
@@ -120,10 +121,8 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         attachmentDashboardFragmentIV.setOnClickListener(this)
         disconnectChatBTN.setOnClickListener(this)
 
-        getUser()
 
-        // Data Maps
-        getDataMaps()
+
 
         chatDashboardFragmentRV.apply {
             setHasFixedSize(false)
@@ -135,11 +134,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
 
 
-        deliver_id = Hawk.get("role", "")
-        if (deliver_id != null){
-        }
 
-        getMessage()
 
     }
 
@@ -152,12 +147,17 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                         chatDashboardFragmentEDT.text.toString(),
                         System.currentTimeMillis()
                     )
-                    firebaseDb.collection("Delivering")
-                        .document("zhhgw5bu8y4LfujqYQZu")
-                        .collection("messages")
-                        .document()
-                        .set(message)
-                    chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
+                    if (order_id.isNotEmpty()){
+                        firebaseDb.collection("Delivering")
+                                .document(order_id)
+                                .collection("messages")
+                                .document()
+                                .set(message)
+                        chatDashboardFragmentEDT.setText("", TextView.BufferType.EDITABLE)
+                    }else{
+                        Toast.makeText(context, "Anda belum terhubungn dengan courier", Toast.LENGTH_LONG).show()
+                    }
+
 
                 }
             }
@@ -179,7 +179,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
             }
             R.id.attachmentDashboardFragmentIV -> {
-                if (deliver_id != null){
+                if (order_id != null){
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                         if (managePermissions.isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
                             managePermissions.showAlert()
@@ -191,13 +191,22 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
             }
             R.id.disconnectChatBTN -> {
                 val builder = AlertDialog.Builder(requireContext())
-                builder.setTitle("Disconnect Chat")
-                builder.setMessage("Apakah anda yakin ingin mengakhiri chat?")
+                builder.setTitle("Paket telah diterima")
+                builder.setMessage("Apakah anda yakin paket anda sudah samapai?")
                 builder.setPositiveButton("Ya") { dialog, which ->
-
+                    requireView().progressBarHolderLoginCL.visibility = View.VISIBLE
+                    val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
+                    firebaseDb.collection("Users")
+                            .document(currentUserID)
+                            .update("order_id", "")
+                            .addOnSuccessListener {
+                                dialog.dismiss()
+                                requireView().progressBarHolderLoginCL.visibility = View.GONE
+                                findNavController().navigate(R.id.navigation_dashboard)
+                            }
                 }
                 builder.setNegativeButton("Tidak") { dialog, which ->
-
+                    dialog.dismiss()
                 }
 
                 val dialog: AlertDialog = builder.create()
@@ -215,6 +224,14 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
             .addOnSuccessListener { documentSnapshot ->
                 val user = documentSnapshot.toObject(UsersModel::class.java)
                 nameDashboardFragmentTV.text = "${user?.first_name} ${user?.last_name}"
+                order_id = user?.order_id.toString()
+                if (order_id.isNotEmpty()){
+                    getMessage()
+                }
+                // Data Maps
+                if (order_id.isNotEmpty()){
+                    getDataMaps()
+                }
 
             }
             .addOnFailureListener {
@@ -224,7 +241,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
 
     fun getMessage() {
         firebaseDb.collection("Delivering")
-            .document("zhhgw5bu8y4LfujqYQZu")
+            .document(order_id)
             .collection("messages").orderBy("time")
             .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
                 if (firebaseFirestoreException != null) {
@@ -253,26 +270,27 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
     }
 
     private fun getDataMaps() {
-        val docMaps = firebaseDb.collection("Maps")
-            .document("zhhgw5bu8y4LfujqYQZu")
-            .collection("marker")
-            .document("sIng06RlDbGjSjbJpXwm")
+        val docMaps = firebaseDb
+                .collection("Ordering")
+                .document(order_id)
         docMaps.addSnapshotListener { value, error ->
             Log.d("Hasil", "${value?.getString("status")} - $error")
 
             when (value?.getString("status")) {
                 "marker" -> {
-                    val maps = value.get("marker") as Map<Any, Any>
-                    val origin = maps["origin"] as GeoPoint
-                    val title = maps["title"] as String
+                    val location = value.get("location") as Map<*, *>
+                    val marker = location["marker"] as Map<*, *>
+
+                    val origin = marker["origin"] as GeoPoint
+                    val title = marker["title"] as String
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
 
                         mapsMarkers(
-                            lat = origin.latitude,
-                            lng = origin.longitude,
-                            title = title
+                                lat = origin.latitude,
+                                lng = origin.longitude,
+                                title = title
                         )
                     }
                 }
@@ -281,20 +299,20 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
+                        val location = value.get("location") as Map<*,*>
+                        val direction = location["direction"] as Map<*, *>
 
-                        val maps = value.get("direction") as Map<Any, Any>
+                        val origin = direction["origin"] as GeoPoint
+                        val destination = direction["destination"] as GeoPoint
 
-                        val origin = maps["origin"] as GeoPoint
-                        val destination = maps["destination"] as GeoPoint
-
-                        titleOrigin = maps["title_origin"] as String
-                        titleDestination = maps["title_destination"] as String
+                        titleOrigin = direction["title_origin"] as String
+                        titleDestination = direction["title_destination"] as String
 
                         mapsRoutesDirection(
-                            originLat = origin.latitude,
-                            originLong = origin.longitude,
-                            destinationLat = destination.latitude,
-                            destinationLong = destination.longitude
+                                originLat = origin.latitude,
+                                originLong = origin.longitude,
+                                destinationLat = destination.latitude,
+                                destinationLong = destination.longitude
                         )
                     }
                 }
@@ -316,17 +334,17 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 val latEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lat
                 val lngEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lng
                 drawPolyLineOnMap(
-                    router = routes.toString(),
-                    origin = LatLng(
-                        latStart.toString().toDouble(),
-                        lngStart.toString().toDouble()
-                    ),
-                    destination = LatLng(
-                        latEnd.toString().toDouble(),
-                        lngEnd.toString().toDouble()
-                    ),
-                    titleOrigin = titleOrigin.toString(),
-                    titleDestination = titleDestination.toString()
+                        router = routes.toString(),
+                        origin = LatLng(
+                                latStart.toString().toDouble(),
+                                lngStart.toString().toDouble()
+                        ),
+                        destination = LatLng(
+                                latEnd.toString().toDouble(),
+                                lngEnd.toString().toDouble()
+                        ),
+                        titleOrigin = titleOrigin.toString(),
+                        titleDestination = titleDestination.toString()
                 )
 
                 // Set Jarak
@@ -335,7 +353,6 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 distances = distence?.let {
                     it / 1000
                 }
-//                jumlahJarakDashboardFragmentTV.text = it.routes?.get(0)?.legs?.get(0)?.distance?.text
             })
 
             errorMessage.observe(viewLifecycleOwner, {
@@ -438,7 +455,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                             System.currentTimeMillis()
                         )
                         firebaseDb.collection("Delivering")
-                            .document("zhhgw5bu8y4LfujqYQZu")
+                            .document(order_id)
                             .collection("messages")
                             .document()
                             .set(message)

@@ -20,6 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CourierManagementSystem">
+        <activity android:name=".ui.tugas.chats.ChatActivity" />
         <activity
             android:name=".ui.courier.dashboard.CourierMainActivity"
             android:theme="@style/Theme.CourierManagementSystemNoActionBar" />

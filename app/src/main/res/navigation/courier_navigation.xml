@@ -23,6 +23,9 @@
         <action
             android:id="@+id/action_navigation_tugas_to_courierDashboardFragment"
             app:destination="@id/navigation_dashboard" />
+        <action
+            android:id="@+id/action_navigation_tugas_to_chatActivity"
+            app:destination="@id/chatActivity" />
     </fragment>
 
     <fragment
@@ -47,4 +50,9 @@
         android:name="id.cikup.couriermanagementsystem.ui.reimburse.ReimburseFragment"
         android:label="@string/reimburse"
         tools:layout="@layout/fragment_reimburse" />
+    <activity
+        android:id="@+id/chatActivity"
+        android:name="id.cikup.couriermanagementsystem.ui.tugas.chats.ChatActivity"
+        android:label="activity_chat"
+        tools:layout="@layout/activity_chat" />
 </navigation>
