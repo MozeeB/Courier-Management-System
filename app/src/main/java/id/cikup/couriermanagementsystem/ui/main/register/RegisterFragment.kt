@@ -171,7 +171,7 @@ class RegisterFragment : Fragment(), View.OnClickListener {
 //                        socket?.emit("user_registration", userObject)
                         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
                             if (it.isSuccessful) {
-                                saveInfoUser(firstName, backName, telepon, email, address, city, province, zip, country, true, role)
+                                saveInfoUser(firstName, backName, telepon, email, address, city, province, zip, country, false, role)
                             } else {
                                 progressBarHolderLoginCL.visibility = View.GONE
                                 auth.signOut()

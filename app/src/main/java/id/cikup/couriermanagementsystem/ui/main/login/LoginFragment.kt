@@ -162,26 +162,33 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
                                 .get()
                                 .addOnSuccessListener { documentSnapshot ->
                                     val user = documentSnapshot.toObject(UsersModel::class.java)
-                                    when (user?.role) {
-                                        "client" -> {
-                                            progressBarHolderLoginCL.visibility = View.GONE
-                                            findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
-                                            Hawk.put("role", "client")
+                                    when(user?.active){
+                                        true ->{
+                                            when (user.role) {
+                                                "client" -> {
+                                                    progressBarHolderLoginCL.visibility = View.GONE
+                                                    findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
+                                                    Hawk.put("role", "client")
 
-                                        }
-                                        "courier" -> {
-                                            progressBarHolderLoginCL.visibility = View.GONE
-                                            findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
-                                            Hawk.put("role", "courier")
+                                                }
+                                                "courier" -> {
+                                                    progressBarHolderLoginCL.visibility = View.GONE
+                                                    findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
+                                                    Hawk.put("role", "courier")
 
+                                                }
+                                            }
                                         }
-                                        else -> {
+                                        false ->{
                                             auth.signOut()
+                                            progressBarHolderLoginCL.visibility = View.GONE
                                             Toast.makeText(context, "Your Account Haven't Accept By Admin", Toast.LENGTH_SHORT).show()
                                         }
                                     }
+
                                 }
                                 .addOnFailureListener {
+                                    progressBarHolderLoginCL.visibility = View.GONE
                                     Toast.makeText(context, "Failed To Login", Toast.LENGTH_SHORT).show()
                                     auth.signOut()
                                 }
