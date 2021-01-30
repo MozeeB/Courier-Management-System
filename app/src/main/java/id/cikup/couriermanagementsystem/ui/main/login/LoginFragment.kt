@@ -165,17 +165,16 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
                                     when(user?.active){
                                         true ->{
                                             when (user.role) {
-                                                "client" -> {
+                                                "Client" -> {
                                                     progressBarHolderLoginCL.visibility = View.GONE
                                                     findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
                                                     Hawk.put("role", "client")
 
                                                 }
-                                                "courier" -> {
+                                                "Courier" -> {
                                                     progressBarHolderLoginCL.visibility = View.GONE
                                                     findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
                                                     Hawk.put("role", "courier")
-
                                                 }
                                             }
                                         }
@@ -214,11 +213,11 @@ class LoginFragment : Fragment(), View.OnClickListener, OnBackPressedListener {
                 .addOnSuccessListener { documentSnapshot ->
                     val user = documentSnapshot.toObject(UsersModel::class.java)
                     when (user?.role) {
-                        "client" -> {
+                        "Client" -> {
                             progressBarHolderLoginCL.visibility = View.GONE
                             findNavController().navigate(R.id.action_loginFragment_to_homeActivity)
                         }
-                        "courier" -> {
+                        "Courier" -> {
                             progressBarHolderLoginCL.visibility = View.GONE
                             findNavController().navigate(R.id.action_loginFragment_to_courierMainActivity)
                         }
