@@ -11,6 +11,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.LayoutInflater
@@ -21,6 +22,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
@@ -51,11 +54,10 @@ import java.util.*
 
 
 class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListener {
-
-
     private val firebaseDb = FirebaseFirestore.getInstance()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     companion object {
         var DOCX: Int = 1
@@ -88,13 +90,14 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     // Jarak Antar 2 Titik
     private var distances: Double? = 0.0
 
-
     var uriPilihFoto: Uri? = null
     lateinit var mCurrentPhotoPath: String
     var file: File? = null
 
     var order_id = ""
     var nama_lengkap = ""
+    private var lat: Double? = 0.0
+    private var lng: Double? = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -120,9 +123,11 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         kirimCourierDashboardeFragmentBTN.setOnClickListener(this)
 
         getUser()
+        if (order_id.isNotEmpty()) {
+            checkStatusDelivering()
+        }
+
         // Data Maps
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val current = LocalDateTime.now()
             val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -158,6 +163,36 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             }
         }
 
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
+    }
+
+    private fun checkStatusDelivering() {
+        val docMaps = firebaseDb
+            .collection("Ordering")
+            .document(order_id)
+        docMaps.addSnapshotListener { value, _ ->
+            when(value?.getString("status_delivering")) {
+                "active" -> {
+                    setStatusMarker()
+                }
+
+                "pending" -> {
+                    firebaseDb.collection("Ordering")
+                        .document(order_id)
+                        .update("status", "destination")
+                }
+
+                "done" -> {
+                    setStatusMarker()
+                }
+            }
+        }
+    }
+
+    private fun setStatusMarker() {
+        firebaseDb.collection("Ordering")
+            .document(order_id)
+            .update("status", "marker")
     }
 
     override fun onClick(p0: View?) {
@@ -235,10 +270,13 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                     nameDashboardFragmentTV.text = "${user?.first_name} ${user?.last_name}"
                     nama_lengkap = "${user?.first_name} ${user?.last_name}"
                     order_id = user?.order_id.toString()
+                    lat = user?.location?.latitude
+                    lng = user?.location?.longitude
+
                     if (order_id.isNotEmpty()) {
                         getDataMaps()
+                        checkStatusDelivering()
                     }
-
                 }
                 .addOnFailureListener {
                     Toast.makeText(context, "Failed To Load", Toast.LENGTH_SHORT).show()
@@ -300,6 +338,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         }
     }
 
+    // TODO
+    @SuppressLint("MissingPermission")
     private fun getDataMaps() {
         val docMaps = firebaseDb
                 .collection("Ordering")
@@ -307,20 +347,19 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         docMaps.addSnapshotListener { value, _ ->
             when (value?.getString("status")) {
                 "marker" -> {
-                    val location = value.get("location") as Map<*, *>
-                    val marker = location["marker"] as Map<*, *>
-
-                    val origin = marker["origin"] as GeoPoint
-                    val title = marker["title"] as String
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
 
-                        mapsMarkers(
-                            lat = origin.latitude,
-                            lng = origin.longitude,
-                            title = title
-                        )
+                        lat?.let { it1 ->
+                            lng?.let { it2 ->
+                                mapsMarkers(
+                                    lat = it1,
+                                    lng = it2,
+                                    title = "-"
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -331,18 +370,18 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         val location = value.get("location") as Map<*, *>
                         val direction = location["direction"] as Map<*, *>
 
-                        val origin = direction["origin"] as GeoPoint
-                        val destination = direction["destination"] as GeoPoint
+                        val destination = direction["origin"] as GeoPoint
 
-                        titleOrigin = direction["title_origin"] as String
-                        titleDestination = direction["title_destination"] as String
-
-                        mapsRoutesDirection(
-                            originLat = origin.latitude,
-                            originLong = origin.longitude,
-                            destinationLat = destination.latitude,
-                            destinationLong = destination.longitude
-                        )
+                        lat?.let { it1 ->
+                            lng?.let { it2 ->
+                                mapsRoutesDirection(
+                                    originLat = it1,
+                                    originLong = it2,
+                                    destinationLat = destination.latitude,
+                                    destinationLong = destination.longitude
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -371,8 +410,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         latEnd.toString().toDouble(),
                         lngEnd.toString().toDouble()
                     ),
-                    titleOrigin = titleOrigin.toString(),
-                    titleDestination = titleDestination.toString()
+                    titleOrigin = it.routes?.get(0)?.legs?.get(0)?.startAddress.toString(),
+                    titleDestination = it.routes?.get(0)?.legs?.get(0)?.endAddress.toString()
                 )
 
                 // Set Jarak
@@ -390,7 +429,6 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
             })
         }
     }
-
 
     private fun mapsMarkers(
         lat: Double,
@@ -423,6 +461,11 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
         this.googleMap.animateCamera(cameraUpdate)
         this.googleMap.isTrafficEnabled = true
+        googleMap.uiSettings.apply {
+            isZoomControlsEnabled = true
+            isRotateGesturesEnabled = true
+            isScrollGesturesEnabled = true
+        }
     }
 
     private fun mapsRoutesDirection(
@@ -726,5 +769,52 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
     }
 
+    var handler = Handler()
+    var runnable: Runnable? = null
+    var delay = 10000
 
+    override fun onResume() {
+        handler.postDelayed(Runnable {
+            runnable?.let { handler.postDelayed(it, delay.toLong()) }
+            saveLocation()
+        }.also { runnable = it }, delay.toLong())
+        super.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        runnable?.let { handler.removeCallbacks(it) }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun saveLocation() {
+        Log.d("Disini 1", "Error")
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        fusedLocationClient.lastLocation.addOnSuccessListener { it ->
+            it?.let {
+                val latitude = it.latitude
+                val longitude = it.longitude
+
+                try {
+                    Log.d("Disini 5", "Error")
+                    val firebaseDb = FirebaseFirestore.getInstance()
+                    firebaseDb.collection("Users")
+                        .document(FirebaseAuth.getInstance().currentUser!!.uid)
+                        .update("location", GeoPoint(latitude, longitude))
+                        .addOnFailureListener {
+                            Log.d("Disini 21", "Erros ${it.message}")
+                        }
+                        .addOnSuccessListener {
+                            Log.d("Disini 22", "Sukses $latitude - $longitude")
+                        }
+                } catch (e: Exception) {
+                    Log.d("Disini 2", "Erros ${e.message}")
+                }
+            }
+        }
+            .addOnFailureListener {
+                Log.d("Disini 3", "Erros ${it.message}")
+            }
+
+    }
 }

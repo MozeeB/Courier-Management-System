@@ -78,6 +78,8 @@
     <string name="total">Total</string>
     <string name="status">Status</string>
     <string name="deskripsi">Deskripsi</string>
+    <string name="get_orders">Ambil Order</string>
+    <string name="done">Selesai</string>
 
     <string-array name="role">
         <item>Client</item>

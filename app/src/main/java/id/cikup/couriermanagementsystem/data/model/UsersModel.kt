@@ -1,5 +1,7 @@
 package id.cikup.couriermanagementsystem.data.model
 
+import com.google.firebase.firestore.GeoPoint
+
 data class UsersModel(
         val first_name: String = "",
         val last_name: String = "",
@@ -15,7 +17,8 @@ data class UsersModel(
 //    val language:String,
         val active: Boolean = false,
         val role: String = "",
-        val order_id: String = ""
+        val order_id: String = "",
+        val location: GeoPoint? = null
 //    val date_last_login:String,
 //    val date_account_created:String,
 
