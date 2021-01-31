@@ -41,6 +41,7 @@ import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
 import id.cikup.couriermanagementsystem.ui.tugas.chats.ConversationAdapter
 import id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardVM
+import kotlinx.android.synthetic.main.activity_courier_main.*
 import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.io.*

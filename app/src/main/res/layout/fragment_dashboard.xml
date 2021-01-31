@@ -166,6 +166,8 @@
                     android:background="@drawable/custom_edt"
                     android:paddingStart="@dimen/_10sdp"
                     android:paddingLeft="@dimen/_10sdp"
+                    android:layout_marginBottom="@dimen/_50sdp"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/cardView6"
                     app:layout_constraintTop_toBottomOf="@+id/cardView6" />
 
@@ -195,21 +197,23 @@
                     app:layout_constraintTop_toTopOf="@+id/chatDashboardFragmentEDT"
                     android:layout_marginRight="@dimen/_10sdp" />
 
-                <Button
-                    android:id="@+id/disconnectChatBTN"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/selesai"
-                    android:layout_marginTop="@dimen/_20sdp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginBottom="@dimen/_50sdp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/chatDashboardFragmentEDT" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </ScrollView>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingClient"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_20sdp"
+        android:layout_marginBottom="@dimen/_40sdp"
+        android:layout_marginRight="@dimen/_20sdp"
+        android:backgroundTint="@color/color3"
+        android:src="@drawable/ic_baseline_disabled_by_default_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/progressBarHolderLoginCL"

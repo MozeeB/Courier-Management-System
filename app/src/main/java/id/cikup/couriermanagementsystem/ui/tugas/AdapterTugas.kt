@@ -9,8 +9,7 @@ import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.TugasModel
 import kotlinx.android.synthetic.main.item_tugas.view.*
 
-class AdapterTugas(private val tugasList: ArrayList<TugasModel>) :
-        RecyclerView.Adapter<AdapterTugas.AdapterTugasViewHolder>(){
+class AdapterTugas(private val tugasList: ArrayList<TugasModel>) : RecyclerView.Adapter<AdapterTugas.AdapterTugasViewHolder>(){
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdapterTugasViewHolder {

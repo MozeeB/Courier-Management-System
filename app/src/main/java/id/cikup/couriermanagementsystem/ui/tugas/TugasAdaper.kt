@@ -5,6 +5,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
@@ -15,9 +16,11 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
 import com.orhanobut.hawk.Hawk
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.TugasModel
+import id.cikup.couriermanagementsystem.data.model.UsersModel
 import kotlinx.android.synthetic.main.item_tugas.view.*
 
 
@@ -96,22 +99,33 @@ class TugasAdaper(option: FirestoreRecyclerOptions<TugasModel>, var context: Con
                 dialog.show()
             }
         }else if (status == "pending"){
-            holder.acc.setOnClickListener {
-                val builder = AlertDialog.Builder(it.context)
+            holder.acc.setOnClickListener {itView ->
+                val builder = AlertDialog.Builder(itView.context)
                 builder.setTitle("Selesai")
                 builder.setMessage("Apakah anda yakin sudah mengantar paket ini?")
                 builder.setPositiveButton("Ya") { dialog, which ->
-                    firebaseDb.collection("Ordering")
-                        .document(model.order_id)
-                        .update("status_delivering", "done")
-                        .addOnSuccessListener {
-                            firebaseDb.collection("Users")
-                                    .document(model.client_id)
-                                    .update("order_id", model.order_id)
-                                    .addOnSuccessListener {
-                                        dialog.dismiss()
-                                    }
-                        }
+                    firebaseDb.collection("Users")
+                            .document(model.client_id)
+                            .get()
+                            .addOnSuccessListener {
+                                val user = it.toObject(UsersModel::class.java)
+                                if (user?.order_id?.isNullOrEmpty() == true){
+                                    firebaseDb.collection("Ordering")
+                                            .document(model.order_id)
+                                            .update("status_delivering", "done")
+                                            .addOnSuccessListener {
+                                                firebaseDb.collection("Users")
+                                                        .document(model.client_id)
+                                                        .update("order_id", model.order_id)
+                                                        .addOnSuccessListener {
+                                                            dialog.dismiss()
+                                                        }
+                                            }
+                                }else{
+                                    Toast.makeText(itView.context, "Maaf client belum mengkonfirmasi", Toast.LENGTH_LONG).show()
+                                }
+                            }
+
 
                 }
                 builder.setNegativeButton("Tidak") { dialog, which ->

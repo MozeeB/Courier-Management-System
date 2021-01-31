@@ -39,6 +39,7 @@ import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
 import id.cikup.couriermanagementsystem.ui.tugas.chats.ConversationAdapter
+import kotlinx.android.synthetic.main.activity_home.*
 import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
 import kotlinx.android.synthetic.main.fragment_dashboard.*
 import kotlinx.android.synthetic.main.fragment_dashboard.logOut
@@ -119,7 +120,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
         kirimChatDasboardFragmentIV.setOnClickListener(this)
         logOut.setOnClickListener(this)
         attachmentDashboardFragmentIV.setOnClickListener(this)
-        disconnectChatBTN.setOnClickListener(this)
+        floatingClient.setOnClickListener(this)
 
 
 
@@ -189,7 +190,7 @@ class DashboardFragment : Fragment(), OnBackPressedListener, View.OnClickListene
                 }
 
             }
-            R.id.disconnectChatBTN -> {
+            R.id.floatingClient -> {
                 val builder = AlertDialog.Builder(requireContext())
                 builder.setTitle("Paket telah diterima")
                 builder.setMessage("Apakah anda yakin paket anda sudah samapai?")

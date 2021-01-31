@@ -14,7 +14,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import id.cikup.couriermanagementsystem.R
 import id.cikup.couriermanagementsystem.data.model.TugasModel
 import id.cikup.couriermanagementsystem.data.model.UsersModel
-import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
 import kotlinx.android.synthetic.main.fragment_tugas.*
 
 class TugasFragment : Fragment() {
@@ -25,6 +24,7 @@ class TugasFragment : Fragment() {
 
     var tugasAdaper:TugasAdaper? = null
 
+    var listData:List<Map<String, Any>>? = null
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -37,11 +37,15 @@ class TugasFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        setUpRecyclerView()
 
         getUser()
 
+//        getRejects()
+
+        setUpRecyclerView()
+
     }
+
 
     @SuppressLint("SetTextI18n")
     fun getUser(){
@@ -60,15 +64,43 @@ class TugasFragment : Fragment() {
     }
 
     fun setUpRecyclerView(){
-        val query = firebaseDb.collection("Ordering")
-                .whereIn("status_delivering", listOf("active","pending"))
-        val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
-            .setQuery(query, TugasModel::class.java)
-            .build()
+            val query = firebaseDb.collection("Ordering")
+//                    .whereNotIn("rejects", listData)
+                    .whereNotIn("status_delivering", listOf("done"))
+            val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
+                    .setQuery(query, TugasModel::class.java)
+                    .build()
 
-        tugasAdaper = TugasAdaper(firestoreRecyclerOptions, requireContext())
-        tugasFragmentRV.layoutManager = LinearLayoutManager(requireContext())
-        tugasFragmentRV.adapter = tugasAdaper
+            tugasAdaper = TugasAdaper(firestoreRecyclerOptions, requireContext())
+            tugasFragmentRV.layoutManager = LinearLayoutManager(requireContext())
+            tugasFragmentRV.adapter = tugasAdaper
+
+
+    }
+
+    fun getRejects(){
+        firebaseDb.collection("Rejects")
+                .document("EIBweaUsYwAfaEKwjZ3g")
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()){
+                        val users = document["user_id"] as List<Map<String, Any>>
+                        setUpRecyclerView()
+                    }else{
+                        val query = firebaseDb.collection("Ordering")
+                                .whereIn("status_delivering", listOf("active","pending"))
+                        val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
+                                .setQuery(query, TugasModel::class.java)
+                                .build()
+
+                        tugasAdaper = TugasAdaper(firestoreRecyclerOptions, requireContext())
+                        tugasFragmentRV.layoutManager = LinearLayoutManager(requireContext())
+                        tugasFragmentRV.adapter = tugasAdaper
+                    }
+
+                }
+
+
     }
 
     override fun onStart() {

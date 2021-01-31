@@ -41,7 +41,7 @@ class UpahFragment : Fragment() {
     fun setUpRecyclerView(){
         val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
         val query = firebaseDb.collection("Upah")
-            .document("LTVWUsRbvdOoUujHvmCokeH6uKu2")
+            .document(currentUserID)
             .collection("upah")
         val firestoreRecyclerOptions : FirestoreRecyclerOptions<UpahModel> = FirestoreRecyclerOptions.Builder<UpahModel>()
             .setQuery(query, UpahModel::class.java)
