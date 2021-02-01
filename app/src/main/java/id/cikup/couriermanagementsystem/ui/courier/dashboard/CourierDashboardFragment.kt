@@ -11,16 +11,19 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.net.toUri
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
@@ -39,9 +42,9 @@ import id.cikup.couriermanagementsystem.data.model.UsersModel
 import id.cikup.couriermanagementsystem.helper.ManagePermissions
 import id.cikup.couriermanagementsystem.helper.OnBackPressedListener
 import id.cikup.couriermanagementsystem.helper.Utils
-import id.cikup.couriermanagementsystem.ui.tugas.chats.ConversationAdapter
 import id.cikup.couriermanagementsystem.ui.client.dashboard.DashboardVM
 import kotlinx.android.synthetic.main.activity_courier_main.*
+import id.cikup.couriermanagementsystem.ui.tugas.chats.ConversationAdapter
 import kotlinx.android.synthetic.main.fragment_courier_dashboard.*
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.io.*
@@ -56,6 +59,7 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
     private val firebaseDb = FirebaseFirestore.getInstance()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
     private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     companion object {
         var DOCX: Int = 1
@@ -95,21 +99,23 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
     var order_id = ""
     var nama_lengkap = ""
+    private var lat: Double? = 0.0
+    private var lng: Double? = 0.0
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_courier_dashboard, container, false)
     }
 
-    @SuppressLint("SimpleDateFormat")
+    @SuppressLint("SimpleDateFormat", "ClickableViewAccessibility")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
         val list = listOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE
+            Manifest.permission.READ_EXTERNAL_STORAGE
         )
         managePermissions = ManagePermissions(requireContext(), list, PermissionsRequestCode)
 
@@ -120,9 +126,11 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         kirimCourierDashboardeFragmentBTN.setOnClickListener(this)
 
         getUser()
+        if (order_id.isNotEmpty()) {
+            checkStatusDelivering()
+        }
+
         // Data Maps
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val current = LocalDateTime.now()
             val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -137,8 +145,57 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         }
         // Create Maps
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        ivImageMaps.setOnTouchListener { _, motionEvent ->
+            return@setOnTouchListener when (motionEvent.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Disallow ScrollView to intercept touch events.
+                    scrollable.requestDisallowInterceptTouchEvent(true)
+                    // Disable touch on transparent view
+                    false
+                }
+                MotionEvent.ACTION_UP -> {
+                    // Allow ScrollView to intercept touch events.
+                    scrollable.requestDisallowInterceptTouchEvent(false)
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    scrollable.requestDisallowInterceptTouchEvent(true)
+                    false
+                }
+                else -> true
+            }
+        }
 
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this.requireActivity())
+    }
 
+    private fun checkStatusDelivering() {
+        val docMaps = firebaseDb
+            .collection("Ordering")
+            .document(order_id)
+        docMaps.addSnapshotListener { value, _ ->
+            when(value?.getString("status_delivering")) {
+                "active" -> {
+                    setStatusMarker()
+                }
+
+                "pending" -> {
+                    firebaseDb.collection("Ordering")
+                        .document(order_id)
+                        .update("status", "destination")
+                }
+
+                "done" -> {
+                    setStatusMarker()
+                }
+            }
+        }
+    }
+
+    private fun setStatusMarker() {
+        firebaseDb.collection("Ordering")
+            .document(order_id)
+            .update("status", "marker")
     }
 
     override fun onClick(p0: View?) {
@@ -195,10 +252,10 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 }
 
             }
-            R.id.kirimCourierDashboardeFragmentBTN ->{
-                if (uriPilihFoto != null){
+            R.id.kirimCourierDashboardeFragmentBTN -> {
+                if (uriPilihFoto != null) {
                     uploadBuktiPenerima()
-                }else{
+                } else {
                     Toast.makeText(context, "Silahkan pilih foto.", Toast.LENGTH_LONG).show()
                 }
             }
@@ -216,10 +273,13 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                     nameDashboardFragmentTV.text = "${user?.first_name} ${user?.last_name}"
                     nama_lengkap = "${user?.first_name} ${user?.last_name}"
                     order_id = user?.order_id.toString()
+                    lat = user?.location?.latitude
+                    lng = user?.location?.longitude
+
                     if (order_id.isNotEmpty()) {
                         getDataMaps()
+                        checkStatusDelivering()
                     }
-
                 }
                 .addOnFailureListener {
                     Toast.makeText(context, "Failed To Load", Toast.LENGTH_SHORT).show()
@@ -245,9 +305,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
 
                         val dataBukti = hashMapOf(
-                                "courier_id" to currentUserID,
-                                "nama_lengkap" to nama_lengkap,
-                                "image" to downloadUri.toString()
+                            "courier_id" to currentUserID,
+                            "nama_lengkap" to nama_lengkap,
+                            "image" to downloadUri.toString()
                         )
 
                         firebaseDb.collection("BuktiPenerima")
@@ -268,9 +328,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         // Handle failures
                         // ...
                         Toast.makeText(
-                                requireContext(),
-                                "Failed to get url file",
-                                Toast.LENGTH_LONG
+                            requireContext(),
+                            "Failed to get url file",
+                            Toast.LENGTH_LONG
                         )
                                 .show()
                     }
@@ -281,29 +341,28 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         }
     }
 
+    // TODO
+    @SuppressLint("MissingPermission")
     private fun getDataMaps() {
         val docMaps = firebaseDb
                 .collection("Ordering")
                 .document(order_id)
-        docMaps.addSnapshotListener { value, error ->
-            Log.d("Hasil", "${value?.getString("status")} - $error")
-
+        docMaps.addSnapshotListener { value, _ ->
             when (value?.getString("status")) {
                 "marker" -> {
-                    val location = value.get("location") as Map<*, *>
-                    val marker = location["marker"] as Map<*, *>
-
-                    val origin = marker["origin"] as GeoPoint
-                    val title = marker["title"] as String
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
 
-                        mapsMarkers(
-                                lat = origin.latitude,
-                                lng = origin.longitude,
-                                title = title
-                        )
+                        lat?.let { it1 ->
+                            lng?.let { it2 ->
+                                mapsMarkers(
+                                    lat = it1,
+                                    lng = it2,
+                                    title = "-"
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -311,21 +370,21 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                     mapFragment?.getMapAsync {
                         this.googleMap = it
                         this.googleMap.clear()
-                        val location = value.get("location") as Map<*,*>
+                        val location = value.get("location") as Map<*, *>
                         val direction = location["direction"] as Map<*, *>
 
-                        val origin = direction["origin"] as GeoPoint
-                        val destination = direction["destination"] as GeoPoint
+                        val destination = direction["origin"] as GeoPoint
 
-                        titleOrigin = direction["title_origin"] as String
-                        titleDestination = direction["title_destination"] as String
-
-                        mapsRoutesDirection(
-                                originLat = origin.latitude,
-                                originLong = origin.longitude,
-                                destinationLat = destination.latitude,
-                                destinationLong = destination.longitude
-                        )
+                        lat?.let { it1 ->
+                            lng?.let { it2 ->
+                                mapsRoutesDirection(
+                                    originLat = it1,
+                                    originLong = it2,
+                                    destinationLat = destination.latitude,
+                                    destinationLong = destination.longitude
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -337,7 +396,6 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
         with(viewModel) {
             success.observe(viewLifecycleOwner, {
-                Log.d("Maps", "$it")
                 routes = it.routes?.get(0)?.overviewPolyline?.points
 
                 val latStart = it.routes?.get(0)?.legs?.get(0)?.startLocation?.lat
@@ -346,17 +404,17 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 val latEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lat
                 val lngEnd = it.routes?.get(0)?.legs?.get(0)?.endLocation?.lng
                 drawPolyLineOnMap(
-                        router = routes.toString(),
-                        origin = LatLng(
-                                latStart.toString().toDouble(),
-                                lngStart.toString().toDouble()
-                        ),
-                        destination = LatLng(
-                                latEnd.toString().toDouble(),
-                                lngEnd.toString().toDouble()
-                        ),
-                        titleOrigin = titleOrigin.toString(),
-                        titleDestination = titleDestination.toString()
+                    router = routes.toString(),
+                    origin = LatLng(
+                        latStart.toString().toDouble(),
+                        lngStart.toString().toDouble()
+                    ),
+                    destination = LatLng(
+                        latEnd.toString().toDouble(),
+                        lngEnd.toString().toDouble()
+                    ),
+                    titleOrigin = it.routes?.get(0)?.legs?.get(0)?.startAddress.toString(),
+                    titleDestination = it.routes?.get(0)?.legs?.get(0)?.endAddress.toString()
                 )
 
                 // Set Jarak
@@ -365,7 +423,8 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 distances = distence?.let {
                     it / 1000
                 }
-                jumlahJarakDashboardFragmentTV.text = it.routes?.get(0)?.legs?.get(0)?.distance?.text
+                jumlahJarakDashboardFragmentTV.text =
+                    it.routes?.get(0)?.legs?.get(0)?.distance?.text
             })
 
             errorMessage.observe(viewLifecycleOwner, {
@@ -374,17 +433,16 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         }
     }
 
-
     private fun mapsMarkers(
-            lat: Double,
-            lng: Double,
-            title: String
+        lat: Double,
+        lng: Double,
+        title: String
     ) {
         val idnBoardingSchool = LatLng(lat, lng)
         this.googleMap.addMarker(
-                MarkerOptions()
-                        .position(idnBoardingSchool)
-                        .title(title)
+            MarkerOptions()
+                .position(idnBoardingSchool)
+                .title(title)
         )
         this.googleMap.mapType = GoogleMap.MAP_TYPE_TERRAIN
         // Info Marker
@@ -406,28 +464,33 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         val cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition.build())
         this.googleMap.animateCamera(cameraUpdate)
         this.googleMap.isTrafficEnabled = true
+        googleMap.uiSettings.apply {
+            isZoomControlsEnabled = true
+            isRotateGesturesEnabled = true
+            isScrollGesturesEnabled = true
+        }
     }
 
     private fun mapsRoutesDirection(
-            originLat: Double,
-            originLong: Double,
-            destinationLat: Double,
-            destinationLong: Double
+        originLat: Double,
+        originLong: Double,
+        destinationLat: Double,
+        destinationLong: Double
     ) {
         viewModel.getDirectionMaps(
-                origin = "$originLat,$originLong",
-                destination = "$destinationLat,$destinationLong",
-                key = getString(R.string.google_maps_key)
+            origin = "$originLat,$originLong",
+            destination = "$destinationLat,$destinationLong",
+            key = getString(R.string.google_maps_key)
         )
     }
 
     // Draw polyline on map
     private fun drawPolyLineOnMap(
-            router: String,
-            origin: LatLng,
-            destination: LatLng,
-            titleOrigin: String,
-            titleDestination: String
+        router: String,
+        origin: LatLng,
+        destination: LatLng,
+        titleOrigin: String,
+        titleDestination: String
     ) {
         val polyOptions = PolylineOptions()
         polyOptions.color(Color.BLUE)
@@ -465,29 +528,14 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
         googleMap.addMarker(MarkerOptions().position(origin).title(titleOrigin))
         googleMap.addMarker(MarkerOptions().position(destination).title(titleDestination))
         googleMap.isTrafficEnabled = true
+        googleMap.uiSettings.apply {
+            isZoomControlsEnabled = true
+            isRotateGesturesEnabled = true
+            isScrollGesturesEnabled = true
+        }
     }
 
-    private fun mapsAreas() {
-        val polygon1 = googleMap.addPolygon(
-                PolygonOptions()
-                        .clickable(true)
-                        .add(
-                                LatLng(-27.457, 153.040),
-                                LatLng(-33.852, 151.211),
-                                LatLng(-37.813, 144.962),
-                                LatLng(-34.928, 138.599)))
 
-        polygon1.tag = "A"
-        polygon1.strokeWidth = POLYGON_STROKE_WIDTH_PX.toFloat()
-
-
-        // Position the map's camera near Alice Springs in the center of Australia,
-        // and set the zoom factor so most of Australia shows on the screen.
-
-        // Position the map's camera near Alice Springs in the center of Australia,
-        // and set the zoom factor so most of Australia shows on the screen.
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(-23.684, 133.903), 2f))
-    }
 
     override fun onBackPressed() {
         this.requireActivity().moveTaskToBack(true)
@@ -495,9 +543,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
 
     override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<String>,
-            grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
     ) {
         when (requestCode) {
             PermissionsRequestCode -> {
@@ -531,9 +579,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                 VIDEO -> {
                     uri = data?.data!!
                     Toast.makeText(
-                            requireContext(),
-                            Utils.INSTANCE.filePath.toString(),
-                            Toast.LENGTH_LONG
+                        requireContext(),
+                        Utils.INSTANCE.filePath.toString(),
+                        Toast.LENGTH_LONG
                     ).show()
 
                     uploadFile()
@@ -580,9 +628,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                     if (task.isSuccessful) {
                         val downloadUri = task.result
                         val message = Message(
-                                userId,
-                                downloadUri.toString(),
-                                System.currentTimeMillis()
+                            userId,
+                            downloadUri.toString(),
+                            System.currentTimeMillis()
                         )
                         firebaseDb.collection("Delivering")
                                 .document(order_id)
@@ -593,9 +641,9 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
                         // Handle failures
                         // ...
                         Toast.makeText(
-                                requireContext(),
-                                "Failed to get url file",
-                                Toast.LENGTH_LONG
+                            requireContext(),
+                            "Failed to get url file",
+                            Toast.LENGTH_LONG
                         )
                                 .show()
                     }
@@ -724,5 +772,52 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
     }
 
+    var handler = Handler()
+    var runnable: Runnable? = null
+    var delay = 10000
 
+    override fun onResume() {
+        handler.postDelayed(Runnable {
+            runnable?.let { handler.postDelayed(it, delay.toLong()) }
+            saveLocation()
+        }.also { runnable = it }, delay.toLong())
+        super.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        runnable?.let { handler.removeCallbacks(it) }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun saveLocation() {
+        Log.d("Disini 1", "Error")
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        fusedLocationClient.lastLocation.addOnSuccessListener { it ->
+            it?.let {
+                val latitude = it.latitude
+                val longitude = it.longitude
+
+                try {
+                    Log.d("Disini 5", "Error")
+                    val firebaseDb = FirebaseFirestore.getInstance()
+                    firebaseDb.collection("Users")
+                        .document(FirebaseAuth.getInstance().currentUser!!.uid)
+                        .update("location", GeoPoint(latitude, longitude))
+                        .addOnFailureListener {
+                            Log.d("Disini 21", "Erros ${it.message}")
+                        }
+                        .addOnSuccessListener {
+                            Log.d("Disini 22", "Sukses $latitude - $longitude")
+                        }
+                } catch (e: Exception) {
+                    Log.d("Disini 2", "Erros ${e.message}")
+                }
+            }
+        }
+            .addOnFailureListener {
+                Log.d("Disini 3", "Erros ${it.message}")
+            }
+
+    }
 }
