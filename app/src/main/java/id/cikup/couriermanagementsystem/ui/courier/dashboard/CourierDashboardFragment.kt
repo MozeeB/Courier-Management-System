@@ -58,7 +58,6 @@ class CourierDashboardFragment : Fragment(), OnBackPressedListener, View.OnClick
 
     private val firebaseDb = FirebaseFirestore.getInstance()
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
-    private val conversationAdapter = ConversationAdapter(arrayListOf(), userId)
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     companion object {
