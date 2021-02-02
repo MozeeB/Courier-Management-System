@@ -23,8 +23,6 @@ class TugasFragment : Fragment() {
 
 
     var tugasAdaper:TugasAdaper? = null
-
-    var listData:List<Map<String, Any>>? = null
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -40,9 +38,9 @@ class TugasFragment : Fragment() {
 
         getUser()
 
-//        getRejects()
+        val currentUserID = FirebaseAuth.getInstance().currentUser!!.uid
+        setUpRecyclerView(currentUserID)
 
-        setUpRecyclerView()
 
     }
 
@@ -56,16 +54,16 @@ class TugasFragment : Fragment() {
             .addOnSuccessListener { documentSnapshot ->
                 val user = documentSnapshot.toObject(UsersModel::class.java)
                 nameTugasFragmentTV.text = "${user?.first_name} ${user?.last_name}"
-
             }
             .addOnFailureListener {
                 Toast.makeText(context, "Failed To Load", Toast.LENGTH_SHORT).show()
             }
     }
 
-    fun setUpRecyclerView(){
+    fun setUpRecyclerView(user:String){
             val query = firebaseDb.collection("Ordering")
-//                    .whereNotIn("rejects", listData)
+                    .document(user)
+                    .collection("order")
                     .whereNotIn("status_delivering", listOf("done"))
             val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
                     .setQuery(query, TugasModel::class.java)
@@ -74,31 +72,6 @@ class TugasFragment : Fragment() {
             tugasAdaper = TugasAdaper(firestoreRecyclerOptions, requireContext())
             tugasFragmentRV.layoutManager = LinearLayoutManager(requireContext())
             tugasFragmentRV.adapter = tugasAdaper
-
-
-    }
-
-    fun getRejects(){
-        firebaseDb.collection("Rejects")
-                .document("EIBweaUsYwAfaEKwjZ3g")
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()){
-                        val users = document["user_id"] as List<Map<String, Any>>
-                        setUpRecyclerView()
-                    }else{
-                        val query = firebaseDb.collection("Ordering")
-                                .whereIn("status_delivering", listOf("active","pending"))
-                        val firestoreRecyclerOptions :FirestoreRecyclerOptions<TugasModel> = FirestoreRecyclerOptions.Builder<TugasModel>()
-                                .setQuery(query, TugasModel::class.java)
-                                .build()
-
-                        tugasAdaper = TugasAdaper(firestoreRecyclerOptions, requireContext())
-                        tugasFragmentRV.layoutManager = LinearLayoutManager(requireContext())
-                        tugasFragmentRV.adapter = tugasAdaper
-                    }
-
-                }
 
 
     }
